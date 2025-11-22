@@ -2,7 +2,7 @@
 #include "Game.h"
 #include <iostream>
 #include <string>
-//aaa
+//aaabbb
 int real_main(int argc, char **argv) {
 	bool testMode = false;
 	if(argc > 1) {
