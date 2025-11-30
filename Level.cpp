@@ -14,8 +14,8 @@ using namespace std;
 namespace LevelSetting {
 	constexpr char level_path_format[] = "./assets/level/LEVEL%d.txt";
 	//! @brief Grid size for each level.
-	constexpr array<int, 4> grid_size = {
-		40, 40, 40, 40
+	constexpr array<int, 6> grid_size = {
+		40, 40, 40, 40,40,40
 	};
 	constexpr int monster_spawn_rate = 90;
 };
