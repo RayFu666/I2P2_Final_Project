@@ -24,6 +24,8 @@ constexpr char game_start_sound_path[] = "./assets/sound/growl.wav";
 constexpr char background_img_path[] = "./assets/image/StartBackground.jpg";
 constexpr char background_sound_path[] = "./assets/sound/BackgroundMusic.ogg";
 
+//add
+const int MAP_WIDTH=600;
 /**
  * @brief Game entry.
  * @details The function processes all allegro events and update the event state to a generic data storage (i.e. DataCenter).
@@ -225,6 +227,24 @@ Game::game_update() {
 			OC->update();
 		}
 	}
+
+	//add
+	//DC->camerax=static_cast<float>(DC->hero->center_x()-DC->window_width/2.0);
+
+	double hero_x=DC->hero->center_x();
+	float camx=static_cast<float>(hero_x-MAP_WIDTH/2.0f);
+	float maxcam=static_cast<float>(DC->game_field_length-MAP_WIDTH);
+	if(maxcam<0){
+		DC->camerax=0.0f;
+	}else{
+		if(camx<0)camx=0;
+		if(maxcam<camx)camx=maxcam;
+		DC->camerax=camx;
+	}
+	//debug
+	debug_log("hero_x = %.2f, camx = %.2f\n", hero_x, DC->camerax);
+	//if(DC->camerax>DC->game_field_length-DC->window_width)DC->camerax=DC->game_field_length-DC->window_width;
+
 	// game_update is finished. The states of current frame will be previous states of the next frame.
 	memcpy(DC->prev_key_state, DC->key_state, sizeof(DC->key_state));
 	memcpy(DC->prev_mouse_state, DC->mouse_state, sizeof(DC->mouse_state));
@@ -244,17 +264,19 @@ Game::game_draw() {
 	al_clear_to_color(al_map_rgb(100, 100, 100));
 	if(state != STATE::END) {
 		// background
-		al_draw_bitmap(background, 0, 0, 0);
-		if(DC->game_field_length < DC->window_width)
-			al_draw_filled_rectangle(
-				DC->game_field_length, 0,
-				DC->window_width, DC->window_height,
-				al_map_rgb(100, 100, 100));
-		if(DC->game_field_length < DC->window_height)
+		//change
+		float camx=DC->camerax;
+		al_draw_bitmap(background,-camx*0.3f, 0, 0);
+		al_draw_filled_rectangle(
+			MAP_WIDTH, 0,
+			DC->window_width, DC->window_height,
+			al_map_rgb(100, 100, 100)
+		);
+		/*if(DC->game_field_length < DC->window_height)
 			al_draw_filled_rectangle(
 				0, DC->game_field_length,
 				DC->window_width, DC->window_height,
-				al_map_rgb(100, 100, 100));
+				al_map_rgb(100, 100, 100));*/
 		// user interface
 		if(state != STATE::START) {
             DC->level->draw();

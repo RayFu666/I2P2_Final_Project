@@ -160,6 +160,7 @@ Monster::update() {
 void
 Monster::draw() {
 	ImageCenter *IC = ImageCenter::get_instance();
+	
 	char buffer[50];
 	sprintf(
 		buffer, "%s/%s_%d.png",
@@ -167,8 +168,21 @@ Monster::draw() {
 		MonsterSetting::dir_path_prefix[static_cast<int>(dir)],
 		bitmap_img_ids[static_cast<int>(dir)][bitmap_img_id]);
 	ALLEGRO_BITMAP *bitmap = IC->get(buffer);
+
+	//add
+	DataCenter *DC=DataCenter::get_instance();
+	float cam_x=DC->camerax;
+	float cam_y=DC->cameray;
+
+	float world_x=static_cast<float>(shape->center_x());
+	float world_y=static_cast<float>(shape->center_y());
+
+	float sc_x=world_x-cam_x-al_get_bitmap_width(bitmap)/2.0f;
+	float sc_y=world_y-cam_y-al_get_bitmap_height(bitmap)/2.0f;
 	al_draw_bitmap(
 		bitmap,
-		shape->center_x() - al_get_bitmap_width(bitmap) / 2,
-		shape->center_y() - al_get_bitmap_height(bitmap) / 2, 0);
+		sc_x,
+		sc_y,
+		0
+	);
 }

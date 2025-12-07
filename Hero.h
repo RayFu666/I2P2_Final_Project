@@ -20,6 +20,10 @@ public:
     void init();
     void update();
     void draw() override;
+
+    //add
+    double center_x() const;
+    double center_y() const;
 private:
     HeroState state = HeroState::FRONT;
     double speed = 5;

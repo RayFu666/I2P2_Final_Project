@@ -37,6 +37,10 @@ public:
 	 * @details The game area is sticked to the top-left of the display window.
 	 */
 	int game_field_length;
+
+	//add
+	float camerax;
+	float cameray;
 	/**
 	 * @brief Stores the keyboard state whether a key is being pressed.
 	 * @details The states will be updated once a key is pressed, asynchronously with frame update.

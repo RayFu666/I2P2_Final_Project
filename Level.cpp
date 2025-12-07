@@ -92,12 +92,31 @@ Level::update() {
 void
 Level::draw() {
 	if(level == -1) return;
+
+	DataCenter *DC=DataCenter::get_instance();
+	float camx=DC->camerax;
 	for(auto &[i, j] : road_path) {
-		int x1 = i * LevelSetting::grid_size[level];
-		int y1 = j * LevelSetting::grid_size[level];
-		int x2 = x1 + LevelSetting::grid_size[level];
-		int y2 = y1 + LevelSetting::grid_size[level];
-		al_draw_filled_rectangle(x1, y1, x2, y2, al_map_rgb(255, 244, 173));
+		//change
+		int x1=i*LevelSetting::grid_size[level];
+        int y1=j*LevelSetting::grid_size[level];
+        int x2=x1+LevelSetting::grid_size[level];
+        int y2=y1+LevelSetting::grid_size[level];
+
+        int screen_x1=static_cast<int>(x1-camx);
+        int screen_y1=y1;
+        int screen_x2=static_cast<int>(x2-camx);
+        int screen_y2=y2;
+		const int MAP_WIDTH=600;
+        if(screen_x2<0||screen_x1>MAP_WIDTH){
+            continue;
+		}
+        al_draw_filled_rectangle(
+            screen_x1,
+			screen_y1,
+            screen_x2,
+			screen_y2,
+            al_map_rgb(255, 244, 173)
+        );
 	}
 }
 

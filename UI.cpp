@@ -23,7 +23,10 @@ UI::init() {
 	DataCenter *DC = DataCenter::get_instance();
 	ImageCenter *IC = ImageCenter::get_instance();
 	love = IC->get(love_img_path);
-	int tl_x = DC->game_field_length + tower_img_left_padding;
+
+	//add,change
+	constexpr int MAP_WIDTH=600;
+	int tl_x =MAP_WIDTH+ tower_img_left_padding;
 	int tl_y = tower_img_top_padding;
 	int max_height = 0;
 	// arrange tower shop
@@ -32,7 +35,8 @@ UI::init() {
 		int w = al_get_bitmap_width(bitmap);
 		int h = al_get_bitmap_height(bitmap);
 		if(tl_x + w > DC->window_width) {
-			tl_x = DC->game_field_length + tower_img_left_padding;
+			//change
+			tl_x =MAP_WIDTH + tower_img_left_padding;
 			tl_y += max_height + tower_img_top_padding;
 			max_height = 0;
 		}
@@ -104,7 +108,25 @@ UI::update() {
 			ALLEGRO_BITMAP *bitmap = Tower::get_bitmap(static_cast<TowerType>(on_item));
 			int w = al_get_bitmap_width(bitmap);
 			int h = al_get_bitmap_height(bitmap);
-			Rectangle place_region{mouse.x - w / 2, mouse.y - h / 2, DC->mouse.x + w / 2, DC->mouse.y + h / 2};
+			const int MAP_WIDTH=600;
+			//add,debug,chamge
+			if (mouse.x >=MAP_WIDTH) {
+				debug_log("<UI> click in UI panel, cancel tower placement.\n");
+				on_item=-1;
+				state=STATE::HALT;
+				break;
+			}
+			float camx=DC->camerax;
+			int world_x=static_cast<int>(mouse.x+camx);
+			int world_y=static_cast<int>(mouse.y);
+
+
+			Rectangle place_region{
+				world_x - w / 2,
+				world_y - h / 2, 
+				world_x + w / 2, 
+				world_y + h / 2
+			};
 			bool place = true;
 			// tower cannot be placed on the road
 			place &= (!DC->level->is_onroad(place_region));
@@ -115,7 +137,10 @@ UI::update() {
 			if(!place) {
 				debug_log("<UI> Tower place failed.\n");
 			} else {
-				DC->towers.emplace_back(Tower::create_tower(static_cast<TowerType>(on_item), mouse));
+				DC->towers.emplace_back(
+					Tower::create_tower(
+						static_cast<TowerType>(on_item),Point{world_x,world_y}
+					));
 				DC->player->coin -= std::get<2>(tower_items[on_item]);
 			}
 			debug_log("<UI> state: change to HALT\n");
@@ -131,17 +156,28 @@ UI::draw() {
 	FontCenter *FC = FontCenter::get_instance();
 	const Point &mouse = DC->mouse;
 	// draw HP
-	const int &game_field_length = DC->game_field_length;
+	//const int &game_field_length = DC->game_field_length;
 	const int &player_HP = DC->player->HP;
+
+	//add
+	constexpr int MAP_WIDTH=600;
+	const int panel=MAP_WIDTH;
 	int love_width = al_get_bitmap_width(love);
 	for(int i = 1; i <= player_HP; ++i) {
-		al_draw_bitmap(love, game_field_length - (love_width + love_img_padding) * i, love_img_padding, 0);
+		al_draw_bitmap(
+			love,
+			//change
+			panel+love_img_padding + (love_width + love_img_padding) * i,
+			love_img_padding,
+			0
+		);
 	}
 	// draw coin
 	const int &player_coin = DC->player->coin;
 	al_draw_textf(
 		FC->courier_new[FontSize::MEDIUM], al_map_rgb(0, 0, 0),
-		game_field_length+love_img_padding, love_img_padding,
+		panel+love_img_padding,
+		love_img_padding,
 		ALLEGRO_ALIGN_LEFT, "coin: %5d", player_coin);
 	// draw tower shop items
 	for(auto &[bitmap, p, price] : tower_items) {
