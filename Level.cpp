@@ -82,8 +82,8 @@ Level::update() {
 
 	for(size_t i = 0; i < num_of_monsters.size(); ++i) {
 		if(num_of_monsters[i] == 0) continue;
-		DC->monsters.emplace_back(Monster::create_monster(static_cast<MonsterType>(i), DC->level->get_road_path()));
-		num_of_monsters[i]--;
+        DC->monsters.emplace_back(Monster::create_monster(static_cast<MonsterType>(i), DC->level->get_road_path()));
+        num_of_monsters[i]--;
 		break;
 	}
 	monster_spawn_counter = LevelSetting::monster_spawn_rate;

@@ -75,12 +75,13 @@ void OperationCenter::_update_monster_player() {
 		if(monsters[i]->HP <= 0) {
 			// Monster gets killed. Player receives money.
 			player->coin += monsters[i]->get_money();
-			delete monsters[i];
-			monsters.erase(monsters.begin() + i);
-			--i;
-			// Since the current monsster is killed, we can directly proceed to next monster.
-			break;
-		}
+			// delete monsters[i];
+			// monsters.erase(monsters.begin() + i);
+			// --i;
+			// // Since the current monsster is killed, we can directly proceed to next monster.
+            // break;
+            continue;
+        }
 		// Check if the monster reaches the end.
 		if(monsters[i]->get_path().empty()) {
 			delete monsters[i];
