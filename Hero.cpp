@@ -24,14 +24,35 @@ void Hero::init() {
     }
     GIFCenter* GIFC = GIFCenter::get_instance();
     ALGIF_ANIMATION* gif = GIFC->get(gifPath[state]);
-    DataCenter* DC = DataCenter::get_instance();
-    shape.reset(new Rectangle{ DC->window_width / 2,DC->window_height / 2,DC->window_width / 2 + gif->width,DC->window_height / 2 + gif->height });
+    //DataCenter* DC = DataCenter::get_instance();
+
+    //add
+    double startx=100;
+    double starty=100;
+    shape.reset(new Rectangle{
+        static_cast<int>(startx),
+        static_cast<int>(starty),
+        static_cast<int>(startx+gif->width),
+        static_cast<int>(starty+gif->height)
+    });
 }
 
 void Hero::draw() {
     GIFCenter* GIFC = GIFCenter::get_instance();
     ALGIF_ANIMATION* gif = GIFC->get(gifPath[state]);
-    algif_draw_gif(gif, shape->center_x() - gif->width / 2, shape->center_y() - gif->height / 2, 0);
+    //algif_draw_gif(gif, shape->center_x() - gif->width / 2, shape->center_y() - gif->height / 2, 0);
+    //add
+    DataCenter* DC = DataCenter::get_instance();
+    float camx=DC->camerax;
+    float camy=DC->cameray;
+
+    double worldx=shape->center_x();
+    double worldy=shape->center_y();
+
+    float scx=static_cast<float>(worldx-camx-gif->width/2);
+    float scy=static_cast<float>(worldy-camy-gif->height/2);
+
+    algif_draw_gif(gif,scx,scy,0);
 }
 
 void Hero::update() {
@@ -52,4 +73,11 @@ void Hero::update() {
         shape->update_center_x(shape->center_x() + speed);
         state = HeroState::RIGHT;
     }
+}
+//add
+double Hero::center_x() const{
+    return shape->center_x();
+}
+double Hero::center_y() const{
+    return shape->center_y();
 }
