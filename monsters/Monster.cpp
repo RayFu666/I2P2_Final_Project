@@ -149,10 +149,7 @@ void Monster::update_walk_state() {
 
     double cx = shape->center_x();
     double cy = shape->center_y();
-    if (cx > 550.0) {
-        shape->update_center_x(550.0);
-        cx = 550.0;
-    }
+
 
     char buffer[50];
     sprintf(
@@ -182,10 +179,8 @@ void Monster::update_walk_state() {
         double ax = a->shape->center_x();
         double ay = a->shape->center_y();
 
-        // 要在同一條 lane 附近
         if (std::abs(ay - cy) > lane_tolerance) continue;
 
-        // 怪物往右走 → 前方是 x 更大的位置
         if (ax <= cx) continue;
 
         double dx_front = ax - cx;
@@ -203,9 +198,8 @@ void Monster::update_walk_state() {
 }
 
 
- // 攻擊狀態的更新：暫時先留空，之後你要加入攻擊冷卻、扣血、攻擊動畫
 void Monster::update_attack_state() {
-    DataCenter* DC = DataCenter::get_instance();
+    //DataCenter* DC = DataCenter::get_instance();
 
     double cx = shape->center_x();
     double cy = shape->center_y();
@@ -222,20 +216,18 @@ void Monster::update_attack_state() {
     double dist_x = std::abs(cx - ax);
     double dist_y = std::abs(cy - ay);
 
-    // 超出攻擊距離 → 回 WALK
     if (dist_y > lane_tolerance || dist_x > attack_range) {
         target_ally = nullptr;
         state = MonsterState::WALK;
         return;
     }
 
-    // 冷卻 → 掛機不扣血
     if (attack_cooldown > 0) {
         --attack_cooldown;
     }
     else {
-        // 扣 Ally 血
-        target_ally->HP -= atk;    // 或寫一個 Ally::take_damage(atk)
+
+        target_ally->HP -= atk;
         attack_cooldown = attack_freq;
     }
 }
@@ -271,19 +263,15 @@ void Monster::draw() {
 }
 
 
- // 死亡狀態的更新：只負責播死亡動畫，播完後交給 Level 移除
+
  void Monster::update_die_state() {
-     // 可以選擇在這裡控制死亡動畫播一次之後就不再循環
-     // 例如：
-     // if (bitmap_img_id == 最後一幀) {
-     //     // 通知 Level 這隻怪可以被移除
-     // }
+
  }
 
 
  void Monster::update() {
-     DataCenter* DC = DataCenter::get_instance();
-     ImageCenter* IC = ImageCenter::get_instance();
+     //DataCenter* DC = DataCenter::get_instance();
+     //ImageCenter* IC = ImageCenter::get_instance();
      if (HP <= 0 && state != MonsterState::DIE) {
          state = MonsterState::DIE;
      }
@@ -296,16 +284,15 @@ void Monster::draw() {
          bitmap_switch_counter = bitmap_switch_freq;
      }
 
-     // 3. 依照狀態做不同行為
      switch (state) {
      case MonsterState::WALK:
-         update_walk_state();   // ★ 我們下一小步來實作
+         update_walk_state();
          break;
      case MonsterState::ATTACK:
-         update_attack_state(); // ★ 先放空框，之後你新增攻擊邏輯
+         update_attack_state();
          break;
      case MonsterState::DIE:
-         update_die_state();    // ★ 播完死亡動畫 → 等 Level 把這隻怪丟掉
+         update_die_state();
          break;
      }
  }

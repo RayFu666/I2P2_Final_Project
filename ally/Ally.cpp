@@ -6,7 +6,7 @@
 
 namespace {
     constexpr double lane_y_table[AllyLaneSetting::lane_count] = {
-        250.0, 300.0, 350.0
+        220.0, 300.0, 380.0
     };
 }
 
@@ -184,15 +184,22 @@ void Ally::draw() {
 
     int sx = col * frame_w;
     int sy = row * frame_h;
+    //add
+    DataCenter *DC=DataCenter::get_instance();
+	float cam_x=DC->camerax;
+	float cam_y=DC->cameray;
 
     double cx = shape->center_x();
     double cy = shape->center_y();
 
+	float sc_x=static_cast<float>(cx-cam_x-frame_w/2.0);
+	float sc_y=static_cast<float>(cy-cam_y-frame_h/2.0);
+
     al_draw_bitmap_region(
         walk_sheet,
         sx, sy, frame_w, frame_h,
-        cx - frame_w / 2,
-        cy - frame_h / 2,
+        sc_x,
+        sc_y,
         0
     );
 }
