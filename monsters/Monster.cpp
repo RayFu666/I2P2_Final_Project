@@ -238,8 +238,10 @@ void Monster::update_attack_state() {
         target_ally->HP -= atk;    // 或寫一個 Ally::take_damage(atk)
         attack_cooldown = attack_freq;
     }
-void
-Monster::draw() {
+}
+
+void Monster::draw() {
+    if (state == MonsterState::DIE)return;
 	ImageCenter *IC = ImageCenter::get_instance();
 	
 	char buffer[50];
@@ -308,134 +310,5 @@ Monster::draw() {
      }
  }
 
-
-// void
-// Monster::update() {
-//     DataCenter* DC = DataCenter::get_instance();
-//     ImageCenter* IC = ImageCenter::get_instance();
-
-//     // After a period, the bitmap for this monster should switch from (i)-th image to (i+1)-th image to represent animation.
-//     if (bitmap_switch_counter) --bitmap_switch_counter;
-//     else {
-//         bitmap_img_id = (bitmap_img_id + 1) % (bitmap_img_ids[static_cast<int>(dir)].size());
-//         bitmap_switch_counter = bitmap_switch_freq;
-//     }
-//     // v (velocity) divided by FPS is the actual moving pixels per frame.
-//     double movement = v / DC->FPS;
-//     // Keep trying to move to next destination in "path" while "path" is not empty and we can still move.
-//     while (!path.empty() && movement > 0) {
-//         const Point& grid = this->path.front();
-//         const Rectangle& region = DC->level->grid_to_region(grid);
-//         const Point& next_goal = Point{ region.center_x(), region.center_y() };
-
-//         // Extract the next destination as "next_goal". If we want to reach next_goal, we need to move "d" pixels.
-//         double d = Point::dist(Point{ shape->center_x(), shape->center_y() }, next_goal);
-//         Dir tmpdir;
-//         if (d < movement) {
-//             // If we can move more than "d" pixels in this frame, we can directly move onto next_goal and reduce "movement" by "d".
-//             movement -= d;
-//             tmpdir = convert_dir(Point{ next_goal.x - shape->center_x(), next_goal.y - shape->center_y() });
-//             shape.reset(new Rectangle{
-//                 next_goal.x, next_goal.y,
-//                 next_goal.x, next_goal.y
-//                 });
-//             path.pop();
-//         }
-//         else {
-//             // Otherwise, we move exactly "movement" pixels.
-//             double dx = (next_goal.x - shape->center_x()) / d * movement;
-//             double dy = (next_goal.y - shape->center_y()) / d * movement;
-//             tmpdir = convert_dir(Point{ dx, dy });
-//             shape->update_center_x(shape->center_x() + dx);
-//             shape->update_center_y(shape->center_y() + dy);
-//             movement = 0;
-//         }
-//         // Update facing direction.
-//         dir = tmpdir;
-//     }
-//     // Update real hit box for monster.
-//     char buffer[50];
-//     sprintf(
-//         buffer, "%s/%s_%d.png",
-//         MonsterSetting::monster_imgs_root_path[static_cast<int>(type)],
-//         MonsterSetting::dir_path_prefix[static_cast<int>(dir)],
-//         bitmap_img_ids[static_cast<int>(dir)][bitmap_img_id]);
-//     ALLEGRO_BITMAP* bitmap = IC->get(buffer);
-//     const double& cx = shape->center_x();
-//     const double& cy = shape->center_y();
-//     // We set the hit box slightly smaller than the actual bounding box of the image because there are mostly empty spaces near the edge of a image.
-//     const int& h = al_get_bitmap_width(bitmap) * 0.8;
-//     const int& w = al_get_bitmap_height(bitmap) * 0.8;
-//     shape.reset(new Rectangle{
-//         (cx - w / 2.), (cy - h / 2.),
-//         (cx - w / 2. + w), (cy - h / 2. + h)
-//         });
-// }
-
-// void
-// Monster::draw() {
-//     ImageCenter* IC = ImageCenter::get_instance();
-//     char buffer[50];
-//     sprintf(
-//         buffer, "%s/%s_%d.png",
-//         MonsterSetting::monster_imgs_root_path[static_cast<int>(type)],
-//         MonsterSetting::dir_path_prefix[static_cast<int>(dir)],
-//         bitmap_img_ids[static_cast<int>(dir)][bitmap_img_id]);
-//     ALLEGRO_BITMAP* bitmap = IC->get(buffer);
-//     al_draw_bitmap(
-//         bitmap,
-//         shape->center_x() - al_get_bitmap_width(bitmap) / 2,
-//         shape->center_y() - al_get_bitmap_height(bitmap) / 2, 0);
-// }
-
- void Monster::draw() {
-     if (state == MonsterState::DIE) return;
-     ImageCenter* IC = ImageCenter::get_instance();
-
-     // ✦ CaveMan：用 black_dude.png sprite sheet
-    //  if (type == MonsterType::CAVEMAN) {
-    //      ALLEGRO_BITMAP* sheet = IC->get("./assets/image/monster/CaveMan/black_dude.png");
-    //      if (!sheet) return;   // 保險：真的沒載到就直接不畫，避免崩潰
-
-    //      int frame_w = 64;
-    //      int frame_h = 64;
-    //      int cols = 2;                 // 橫向 2 格
-    //      int frame = bitmap_img_id;    // 0~5
-
-    //      // 如果你只做了 6 幀，確保不要跑出 0~5 以外
-    //      frame %= 6;
-
-    //      int col = frame % cols;       // 0 或 1
-    //      int row = frame / cols;       // 0,1,2
-
-    //      int sx = col * frame_w;
-    //      int sy = row * frame_h;
-
-    //      double cx = shape->center_x();
-    //      double cy = shape->center_y();
-
-    //      al_draw_bitmap_region(
-    //          sheet,
-    //          sx, sy, frame_w, frame_h,
-    //          cx - frame_w / 2,
-    //          cy - frame_h / 2,
-    //          0
-    //      );
-    //      return;
-    //  }
-
-     // ✦ 其他 Monster：沿用舊邏輯
-     char buffer[50];
-     sprintf(
-         buffer, "%s/%s_%d.png",
-         MonsterSetting::monster_imgs_root_path[static_cast<int>(type)],
-         MonsterSetting::dir_path_prefix[static_cast<int>(dir)],
-         bitmap_img_ids[static_cast<int>(dir)][bitmap_img_id]);
-     ALLEGRO_BITMAP* bitmap = IC->get(buffer);
-     al_draw_bitmap(
-         bitmap,
-         shape->center_x() - al_get_bitmap_width(bitmap) / 2,
-         shape->center_y() - al_get_bitmap_height(bitmap) / 2, 0);
- }
 
 
