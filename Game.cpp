@@ -9,6 +9,7 @@
 #include "Level.h"
 
 #include "Hero.h"
+#include "ally/Ally.h"
 
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_font.h>
@@ -220,6 +221,24 @@ Game::game_update() {
 
         DC->hero->update();
 
+        // ★ Debug 版：左鍵點地圖就生成一隻 Ally，先看效果
+        if (state == STATE::LEVEL &&
+            DC->mouse_state[1] && !DC->prev_mouse_state[1] &&   // 左鍵剛按下
+            DC->mouse.x < DC->game_field_length) {              // 只允許在遊戲區域生成（不要點到右邊 UI）
+
+            int lane_id = AllyLaneSetting::nearest_lane_id(DC->mouse.y);
+            double spawn_y = AllyLaneSetting::lane_y_by_id(lane_id);
+            Point spawn_pos{ DC->mouse.x, spawn_y };
+
+            DC->allies.emplace_back(new Ally(spawn_pos, lane_id));
+        }
+
+
+        // ★ 更新所有 Ally 的邏輯
+        for (Ally* a : DC->allies) {
+            a->update();
+        }
+
         if (state != STATE::START) {
 			DC->level->update();
 			OC->update();
@@ -260,6 +279,10 @@ Game::game_draw() {
             DC->level->draw();
 
             DC->hero->draw();
+
+            for (Ally* a : DC->allies) {
+                a->draw();
+            }
 
             ui->draw();
 			OC->draw();
