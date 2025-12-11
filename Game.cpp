@@ -396,6 +396,9 @@ Game::game_draw() {
 		// background
 		//change
 		float camx=DC->camerax;
+		al_set_clipping_rectangle(0, 0, DC->window_width, DC->window_height);
+		ui->draw();
+
 		al_draw_bitmap(background,-camx*0.3f, 0, 0);
 		al_draw_filled_rectangle(
 			MAP_WIDTH, 0,

@@ -131,9 +131,11 @@ Level::draw() {
         int screen_x2=static_cast<int>(x2-camx);
         int screen_y2=y2;
 		const int MAP_WIDTH=600;
-        if(screen_x2<0||screen_x1>MAP_WIDTH){
+        if(screen_x2<0||screen_x1>=MAP_WIDTH){
             continue;
 		}
+		if(screen_x1<0)screen_x1=0;
+        if(screen_x2>MAP_WIDTH)screen_x2=MAP_WIDTH;
         al_draw_filled_rectangle(
             screen_x1,
 			screen_y1,
