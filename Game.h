@@ -27,7 +27,10 @@ private:
 		START, // -> LEVEL
 		LEVEL, // -> PAUSE, END
 		PAUSE, // -> LEVEL
-		END
+		END,
+		//add
+		WIN,
+		LOSE
 	};
 	STATE state;
 	ALLEGRO_EVENT event;
@@ -38,6 +41,9 @@ private:
 	ALLEGRO_TIMER *timer;
 	ALLEGRO_EVENT_QUEUE *event_queue;
 	UI *ui;
+
+	//add
+	int cur_level=1;
 };
 
 #endif

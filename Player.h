@@ -6,6 +6,8 @@ class Player
 public:
 	Player();
 	void update();
+	//add
+	void rst();
 	int HP;
 	int coin;
 private:

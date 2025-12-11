@@ -172,16 +172,31 @@ Game::game_update() {
 		case STATE::START: {
 			static bool is_played = false;
 			static ALLEGRO_SAMPLE_INSTANCE *instance = nullptr;
+
+
 			if(!is_played) {
 				instance = SC->play(game_start_sound_path, ALLEGRO_PLAYMODE_ONCE);
 				al_set_sample_instance_gain(instance, 0.1f);
-				DC->level->load_level(5);
+				//DC->level->load_level(5);
 				is_played = true;
 			}
+			//add
+			int selected=-1;
+			if(DC->key_state[ALLEGRO_KEY_1]&&!DC->prev_key_state[ALLEGRO_KEY_1])selected=1;
+			if(DC->key_state[ALLEGRO_KEY_2]&&!DC->prev_key_state[ALLEGRO_KEY_2])selected=2;
+			if(DC->key_state[ALLEGRO_KEY_3]&&!DC->prev_key_state[ALLEGRO_KEY_3])selected=3;
+			if(DC->key_state[ALLEGRO_KEY_4]&&!DC->prev_key_state[ALLEGRO_KEY_4])selected=4;
+			if(DC->key_state[ALLEGRO_KEY_5]&&!DC->prev_key_state[ALLEGRO_KEY_5])selected=5;
+			if(selected!=-1){
+				cur_level=selected;
+				DC->clear_game();
+				DC->level->init();
+				DC->level->load_level(cur_level);
+				DC->hero->init();
+				DC->player->rst();
 
-			if(!SC->is_playing(instance)) {
 				debug_log("<Game> state: change to LEVEL\n");
-				state = STATE::LEVEL;
+			 	state=STATE::LEVEL;
 			}
 			break;
 		} case STATE::LEVEL: {
@@ -197,13 +212,18 @@ Game::game_update() {
 				debug_log("<Game> state: change to PAUSE\n");
 				state = STATE::PAUSE;
 			}
+			//debug
+			//debug_log("<Game> remain = %d, monsters_on_field = %zu\n",
+              //DC->level->remain_monsters(), DC->monsters.size());
 			if(DC->level->remain_monsters() == 0 && DC->monsters.size() == 0) {
-				debug_log("<Game> state: change to END\n");
-				state = STATE::END;
+				debug_log("<Game> state: change to WIN\n");
+				//CHANGE
+				state = STATE::WIN;
 			}
 			if(DC->player->HP == 0) {
-				debug_log("<Game> state: change to END\n");
-				state = STATE::END;
+				debug_log("<Game> state: change to LOSE\n");
+				//change
+				state = STATE::LOSE;
 			}
 			break;
 		} case STATE::PAUSE: {
@@ -213,18 +233,54 @@ Game::game_update() {
 				state = STATE::LEVEL;
 			}
 			break;
-		} case STATE::END: {
+		} 
+		//add
+		case STATE::WIN:{
+			if(DC->key_state[ALLEGRO_KEY_R]&&!DC->prev_key_state[ALLEGRO_KEY_R]){
+				DC->clear_game();
+				DC->level->init();
+				DC->level->load_level(cur_level);
+				DC->hero->init();
+				DC->player->rst();
+				state=STATE::LEVEL;
+			}
+			if(DC->key_state[ALLEGRO_KEY_ENTER]&&!DC->prev_key_state[ALLEGRO_KEY_ENTER]){
+				state=STATE::START;
+			}
+			if(DC->key_state[ALLEGRO_KEY_ESCAPE]&&!DC->prev_key_state[ALLEGRO_KEY_ESCAPE]){
+				state=STATE::END;
+			}
+			break;
+		}
+		case STATE::LOSE:{
+			if(DC->key_state[ALLEGRO_KEY_R]&&!DC->prev_key_state[ALLEGRO_KEY_R]){
+				DC->clear_game();
+				DC->level->init();
+				DC->level->load_level(cur_level);
+				DC->hero->init();
+				DC->player->rst();
+				state=STATE::LEVEL;
+			}
+			if(DC->key_state[ALLEGRO_KEY_ENTER]&&!DC->prev_key_state[ALLEGRO_KEY_ENTER]){
+				state=STATE::START;
+			}
+			if(DC->key_state[ALLEGRO_KEY_ESCAPE]&&!DC->prev_key_state[ALLEGRO_KEY_ESCAPE]){
+				state=STATE::END;
+			}
+			break;
+		}
+		case STATE::END: {
 			return false;
 		}
 	}
 	// If the game is not paused, we should progress update.
-	if(state != STATE::PAUSE) {
+	if(state==STATE::LEVEL) {
 		DC->player->update();
 		SC->update();
         ui->update();
 
         DC->hero->update();
-
+		const int ALLY_COST=50;
 		//change
 		if (state == STATE::
 			LEVEL&&
@@ -234,23 +290,29 @@ Game::game_update() {
 			DC->ally_sel&&
 			DC->ally_preview!=-1	
 		) {
+			if(DC->player->coin>=ALLY_COST){
+				float cam_x=DC->camerax;
+				double world_x=DC->mouse.x+cam_x; 
+				if(world_x<0)world_x=0;
+				if (world_x>DC->game_field_length)world_x=DC->game_field_length;
+
+
+				int lane_id=DC->ally_preview;
+				//double spawn_y=AllyLaneSetting::nearest_lane_id(DC->mouse.y);
+				double spawn_y = AllyLaneSetting::lane_y_by_id(lane_id);
+				Point spawn_pos{world_x, spawn_y };
+
+				DC->allies.emplace_back(new Ally(spawn_pos, lane_id));
+
+				DC->player->coin-=ALLY_COST;
+				DC->ally_preview=-1;
+				DC->ally_sel=false;
+				DC->ally_type=-1;
+			}else{
+				//debug
+				debug_log("Not enough coin to summon Ally. coin = %d\n", DC->player->coin);
+			}
 			
-			float cam_x=DC->camerax;
-    		double world_x=DC->mouse.x+cam_x; 
-			if(world_x<0)world_x=0;
-    		if (world_x>DC->game_field_length)world_x=DC->game_field_length;
-
-
-            int lane_id=DC->ally_preview;
-			//double spawn_y=AllyLaneSetting::nearest_lane_id(DC->mouse.y);
-            double spawn_y = AllyLaneSetting::lane_y_by_id(lane_id);
-            Point spawn_pos{world_x, spawn_y };
-
-            DC->allies.emplace_back(new Ally(spawn_pos, lane_id));
-
-			DC->ally_preview=-1;
-			DC->ally_sel=false;
-			DC->ally_type=-1;
         }
 		//add
         if (state == STATE::LEVEL &&
@@ -310,7 +372,7 @@ Game::game_update() {
 		DC->camerax=camx;
 	}
 	//debug
-	debug_log("hero_x = %.2f, camx = %.2f\n", hero_x, DC->camerax);
+	//debug_log("hero_x = %.2f, camx = %.2f\n", hero_x, DC->camerax);
 	//if(DC->camerax>DC->game_field_length-DC->window_width)DC->camerax=DC->game_field_length-DC->window_width;
 
 	// game_update is finished. The states of current frame will be previous states of the next frame.
@@ -373,6 +435,43 @@ Game::game_draw() {
 	}
 	switch(state) {
 		case STATE::START: {
+			//add
+			al_draw_filled_rectangle(
+				0, 0, DC->window_width, DC->window_height,
+				al_map_rgba(0, 0, 0, 120)
+			);
+			al_draw_text(
+				FC->caviar_dreams[FontSize::LARGE],al_map_rgb(255, 255, 255),
+				DC->window_width/2.0,150,
+				ALLEGRO_ALIGN_CENTRE,"Select Level"
+			);
+			al_draw_text(
+				FC->caviar_dreams[FontSize::MEDIUM],al_map_rgb(255,255,255),
+				DC->window_width / 2.0, 220,
+				ALLEGRO_ALIGN_CENTRE,"[1]Level 1"
+			);
+			al_draw_text(
+				FC->caviar_dreams[FontSize::MEDIUM],al_map_rgb(255,255,255),
+				DC->window_width / 2.0, 260,
+				ALLEGRO_ALIGN_CENTRE,"[2]Level 2"
+			);
+			al_draw_text(
+				FC->caviar_dreams[FontSize::MEDIUM],al_map_rgb(255,255,255),
+				DC->window_width/2.0,300,
+				ALLEGRO_ALIGN_CENTRE,"[3]Level 3"
+			);
+			al_draw_text(
+				FC->caviar_dreams[FontSize::MEDIUM],al_map_rgb(255,255,255),
+				DC->window_width/2.0,340,
+				ALLEGRO_ALIGN_CENTRE,"[4]Level 4"
+			);
+			al_draw_text(
+				FC->caviar_dreams[FontSize::MEDIUM],al_map_rgb(255,255,255),
+				DC->window_width/2.0,380,
+				ALLEGRO_ALIGN_CENTRE,"[5]Level 5"
+			);
+			break;
+
 		} case STATE::LEVEL: {
 			break;
 		} case STATE::PAUSE: {
@@ -383,7 +482,45 @@ Game::game_draw() {
 				DC->window_width/2., DC->window_height/2.,
 				ALLEGRO_ALIGN_CENTRE, "GAME PAUSED");
 			break;
-		} case STATE::END: {
+		}
+		//add
+		case STATE::WIN:{
+			al_draw_filled_rectangle(
+				0,0,DC->window_width,DC->window_height,
+				al_map_rgba(0,0,0,150)
+			);
+			al_draw_text(
+				FC->caviar_dreams[FontSize::LARGE],al_map_rgb(255,255,0),
+				DC->window_width/2.0,DC->window_height/2.0-40,
+				ALLEGRO_ALIGN_CENTRE,"YOU WIN!"
+			);
+			al_draw_text(
+				FC->caviar_dreams[FontSize::MEDIUM],al_map_rgb(255,255,255),
+				DC->window_width/2.0,DC->window_height/2.0+10,
+				ALLEGRO_ALIGN_CENTRE,"R:Retry///ENTER:Level Select///esc:quit"
+			);
+			break;
+		}
+		case STATE::LOSE:{
+			al_draw_filled_rectangle(
+				0,0,DC->window_width,DC->window_height,
+				al_map_rgba(0,0,0,150)
+			);
+			al_draw_text(
+				FC->caviar_dreams[FontSize::LARGE],al_map_rgb(255,255,0),
+				DC->window_width/2.0,DC->window_height/2.0-40,
+				ALLEGRO_ALIGN_CENTRE,"YOU LOSE!"
+			);
+			al_draw_text(
+				FC->caviar_dreams[FontSize::MEDIUM],al_map_rgb(255,255,255),
+				DC->window_width/2.0,DC->window_height/2.0+10,
+				ALLEGRO_ALIGN_CENTRE,"R:Retry///ENTER:Level Select///esc:quit"
+			);
+			break;
+		}
+
+
+		case STATE::END: {
 		}
 	}
 	al_flip_display();

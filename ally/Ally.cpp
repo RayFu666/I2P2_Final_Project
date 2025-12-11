@@ -33,23 +33,21 @@ Ally::Ally(const Point& p, int lane_id)
     //DataCenter* DC = DataCenter::get_instance();
     ImageCenter* IC = ImageCenter::get_instance();
 
-    // 先用跟 CaveMan 一樣的 sprite sheet（之後你可以換）
     walk_sheet = IC->get("./assets/image/ally/black_dude.png");
 
-    HP = 10;   // 隨便先給
-    v = 60;   // 每秒 60px
+    HP = 30;
+    v = 60;
 
     frame = 0;
-    frame_count = 6;        // 3x2 = 6 幀
+    frame_count = 6;
     frame_switch_freq = 10;
     frame_switch_counter = 0;
 
     state = AllyState::WALK;
 
-    // 先把中心放在 p（p 是你指定的 x，y 之後會被「貼近 lane」）
     shape.reset(new Rectangle{ p.x, p.y, p.x, p.y });
 
-    atk = 2;
+    atk = 3;
     attack_freq = 30;       // 30 frame 打一次 ≈ 0.5 秒
     attack_cooldown = 0;
     attack_range = 40.0;

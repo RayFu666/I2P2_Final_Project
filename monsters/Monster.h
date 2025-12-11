@@ -39,6 +39,9 @@ public:
     const std::queue<Point>& get_path() const { return path; }
     bool is_dead() const;
     void take_damage(int dmg);
+
+    //add
+    int atk =2;
 protected:
     /**
      * @var HP
@@ -82,7 +85,6 @@ private:
     MonsterState state = MonsterState::WALK;
 
     Ally* target_ally = nullptr;
-    int atk = 2;               // 怪物攻擊力（先隨便一個值）
     int attack_cooldown = 0;
     int attack_freq = 30;      // 每 30 frame 攻擊一次
     double attack_range = 40;  // 近戰距離

@@ -59,3 +59,28 @@ DataCenter::~DataCenter() {
     }
     for (Ally*& a : allies) delete a;
 }
+//add
+void
+DataCenter::clear_game(){
+	for(Monster*& m:monsters){
+        delete m;
+    }
+    monsters.clear();
+
+    for(Tower*& t:towers){
+        delete t;
+    }
+    towers.clear();
+
+    for(Bullet*& b:towerBullets){
+        delete b;
+    }
+    towerBullets.clear();
+
+    for(Ally*& a:allies){
+        delete a;
+    }
+    allies.clear();
+
+
+}

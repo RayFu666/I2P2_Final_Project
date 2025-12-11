@@ -76,6 +76,9 @@ public:
 	 * @see Game::game_update()
 	 */
 	bool prev_mouse_state[ALLEGRO_MOUSE_MAX_EXTRA_AXES];
+
+	//add
+	void clear_game();
 public:
 	/**
 	 * @brief Stores the basic information that a player should have.

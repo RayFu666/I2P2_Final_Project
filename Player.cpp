@@ -22,3 +22,13 @@ Player::update() {
 		coin_counter = coin_freq;
 	}
 }
+//add
+void
+Player::rst(){
+	HP=PlayerSetting::init_HP;
+    coin=PlayerSetting::init_coin;
+
+    coin_freq=PlayerSetting::coin_freq;
+    coin_increase=PlayerSetting::coin_increase;
+    coin_counter=coin_freq;
+}
