@@ -12,6 +12,8 @@
 #include <allegro5/allegro_primitives.h>
 #include "../ally/Ally.h"
 
+//add
+#include "../Player.h"
 using namespace std;
 
 // fixed settings
@@ -190,7 +192,15 @@ void Monster::update_walk_state() {
         }
     }
 
+    //add
+    DataCenter *DC2=DataCenter::get_instance();
+    double base_x=static_cast<double>(DC2->game_field_length);
+    double distance=base_x-cx;
     if (best) {
+        target_ally = best;
+        state = MonsterState::ATTACK;
+        attack_cooldown = 0;
+    }else if(distance<=attack_range){
         target_ally = best;
         state = MonsterState::ATTACK;
         attack_cooldown = 0;
@@ -199,37 +209,57 @@ void Monster::update_walk_state() {
 
 
 void Monster::update_attack_state() {
-    //DataCenter* DC = DataCenter::get_instance();
+    DataCenter* DC = DataCenter::get_instance();
 
     double cx = shape->center_x();
     double cy = shape->center_y();
 
-    if (!target_ally || target_ally->is_dead()) {
-        target_ally = nullptr;
-        state = MonsterState::WALK;
-        return;
+    if(target_ally){
+        if (target_ally->is_dead()) {
+            target_ally = nullptr;
+            state = MonsterState::WALK;
+            return;
+        }
+
+        double ax = target_ally->shape->center_x();
+        double ay = target_ally->shape->center_y();
+
+        double dist_x = std::abs(cx - ax);
+        double dist_y = std::abs(cy - ay);
+
+        if (dist_y > lane_tolerance || dist_x > attack_range) {
+            target_ally = nullptr;
+            state = MonsterState::WALK;
+            return;
+        }
+
+        if (attack_cooldown > 0) {
+            --attack_cooldown;
+        }
+        else {
+
+            target_ally->HP -= atk;
+            attack_cooldown = attack_freq;
+        }
+    }else{
+        //add
+        Player* player=DC->player;
+        double base_x=static_cast<double>(DC->game_field_length);
+        double dist_base=base_x-cx;
+
+        if(dist_base>attack_range){
+            state=MonsterState::WALK;
+            return;
+        }
+
+        if(attack_cooldown>0){
+            attack_cooldown--;
+        }else{
+            player->HP-=atk;
+            attack_cooldown=attack_freq;
+        }
     }
-
-    double ax = target_ally->shape->center_x();
-    double ay = target_ally->shape->center_y();
-
-    double dist_x = std::abs(cx - ax);
-    double dist_y = std::abs(cy - ay);
-
-    if (dist_y > lane_tolerance || dist_x > attack_range) {
-        target_ally = nullptr;
-        state = MonsterState::WALK;
-        return;
-    }
-
-    if (attack_cooldown > 0) {
-        --attack_cooldown;
-    }
-    else {
-
-        target_ally->HP -= atk;
-        attack_cooldown = attack_freq;
-    }
+    
 }
 
 void Monster::draw() {

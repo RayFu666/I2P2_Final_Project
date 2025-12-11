@@ -220,7 +220,7 @@ Game::game_update() {
 				//CHANGE
 				state = STATE::WIN;
 			}
-			if(DC->player->HP == 0) {
+			if(DC->player->HP<=0) {
 				debug_log("<Game> state: change to LOSE\n");
 				//change
 				state = STATE::LOSE;
@@ -497,7 +497,17 @@ Game::game_draw() {
 			al_draw_text(
 				FC->caviar_dreams[FontSize::MEDIUM],al_map_rgb(255,255,255),
 				DC->window_width/2.0,DC->window_height/2.0+10,
-				ALLEGRO_ALIGN_CENTRE,"R:Retry///ENTER:Level Select///esc:quit"
+				ALLEGRO_ALIGN_CENTRE,"R:Retry"
+			);
+			al_draw_text(
+				FC->caviar_dreams[FontSize::MEDIUM],al_map_rgb(255,255,255),
+				DC->window_width/2.0,DC->window_height/2.0+60,
+				ALLEGRO_ALIGN_CENTRE,"ENTER:Level Select"
+			);
+			al_draw_text(
+				FC->caviar_dreams[FontSize::MEDIUM],al_map_rgb(255,255,255),
+				DC->window_width/2.0,DC->window_height/2.0+110,
+				ALLEGRO_ALIGN_CENTRE,"esc:quit"
 			);
 			break;
 		}
@@ -514,7 +524,17 @@ Game::game_draw() {
 			al_draw_text(
 				FC->caviar_dreams[FontSize::MEDIUM],al_map_rgb(255,255,255),
 				DC->window_width/2.0,DC->window_height/2.0+10,
-				ALLEGRO_ALIGN_CENTRE,"R:Retry///ENTER:Level Select///esc:quit"
+				ALLEGRO_ALIGN_CENTRE,"R:Retry"
+			);
+			al_draw_text(
+				FC->caviar_dreams[FontSize::MEDIUM],al_map_rgb(255,255,255),
+				DC->window_width/2.0,DC->window_height/2.0+60,
+				ALLEGRO_ALIGN_CENTRE,"ENTER:Level Select"
+			);
+			al_draw_text(
+				FC->caviar_dreams[FontSize::MEDIUM],al_map_rgb(255,255,255),
+				DC->window_width/2.0,DC->window_height/2.0+110,
+				ALLEGRO_ALIGN_CENTRE,"esc:quit"
 			);
 			break;
 		}
