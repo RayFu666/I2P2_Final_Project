@@ -398,7 +398,7 @@ Game::game_draw() {
 		//change
 		float camx=DC->camerax;
 		al_set_clipping_rectangle(0, 0, DC->window_width, DC->window_height);
-		ui->draw();
+		//ui->draw();
 
 		al_draw_bitmap(background,-camx*0.3f, 0, 0);
 		al_draw_filled_rectangle(
@@ -406,46 +406,14 @@ Game::game_draw() {
 			DC->window_width, DC->window_height,
 			al_map_rgb(100, 100, 100)
 		);
-		/*if(DC->game_field_length < DC->window_height)
-			al_draw_filled_rectangle(
-				0, DC->game_field_length,
-				DC->window_width, DC->window_height,
-				al_map_rgb(100, 100, 100));*/
+		
 		// user interface
-		if(state != STATE::START) {
-            DC->level->draw();
-
-    if (state != STATE::END) {
-        float camx = DC->camerax;
-
-        al_set_clipping_rectangle(0, 0, DC->window_width, DC->window_height);
-
-        al_draw_bitmap(background, -camx * 0.3f, 0, 0);
-
-        al_draw_filled_rectangle(
-            MAP_WIDTH, 0,
-            DC->window_width, DC->window_height,
-            al_map_rgb(100, 100, 100)
-        );
 
         al_set_clipping_rectangle(0, 0, MAP_WIDTH, DC->window_height);
 
-        if (state != STATE::START) {
-            DC->level->draw();   // 路就不會畫到右邊去了
-            DC->hero->draw();
-
-            for (Ally* a : DC->allies) {
-                a->draw();
-            }
-
-            OC->draw();
-        }
-
-
-        al_set_clipping_rectangle(0, 0, DC->window_width, DC->window_height);
-
-        if (state != STATE::START) {
-            if (DC->ally_sel && DC->ally_preview != -1) {
+		if (state != STATE::START) {
+            DC->level->draw();
+			if (DC->ally_sel && DC->ally_preview != -1) {
                 double lane_y = AllyLaneSetting::lane_y_by_id(DC->ally_preview);
                 float half_h = 20.0f;
 
@@ -458,10 +426,61 @@ Game::game_draw() {
                 );
             }
 
-            ui->draw();
-        }
-    }
 
+
+            DC->hero->draw();
+
+            for (Ally* a : DC->allies) {
+                a->draw();
+            }
+
+            OC->draw();
+        }
+
+        al_set_clipping_rectangle(0, 0, DC->window_width, DC->window_height);
+		if(state!=STATE::START){
+			ui->draw();
+		}
+        
+    }
+	switch (state) {
+		case STATE::START: {
+			al_draw_filled_rectangle(
+				0, 0, DC->window_width, DC->window_height,
+				al_map_rgba(0, 0, 0, 120)
+			);
+			al_draw_text(
+				FC->caviar_dreams[FontSize::LARGE], al_map_rgb(255, 255, 255),
+				DC->window_width / 2.0, 150,
+				ALLEGRO_ALIGN_CENTRE, "Select Level"
+			);
+			al_draw_text(
+				FC->caviar_dreams[FontSize::MEDIUM], al_map_rgb(255, 255, 255),
+				DC->window_width / 2.0, 220,
+				ALLEGRO_ALIGN_CENTRE, "[1]Level 1"
+			);
+			al_draw_text(
+				FC->caviar_dreams[FontSize::MEDIUM], al_map_rgb(255, 255, 255),
+				DC->window_width / 2.0, 260,
+				ALLEGRO_ALIGN_CENTRE, "[2]Level 2"
+			);
+			al_draw_text(
+				FC->caviar_dreams[FontSize::MEDIUM], al_map_rgb(255, 255, 255),
+				DC->window_width / 2.0, 300,
+				ALLEGRO_ALIGN_CENTRE, "[3]Level 3"
+			);
+			al_draw_text(
+				FC->caviar_dreams[FontSize::MEDIUM], al_map_rgb(255, 255, 255),
+				DC->window_width / 2.0, 340,
+				ALLEGRO_ALIGN_CENTRE, "[4]Level 4"
+			);
+			al_draw_text(
+				FC->caviar_dreams[FontSize::MEDIUM], al_map_rgb(255, 255, 255),
+				DC->window_width / 2.0, 380,
+				ALLEGRO_ALIGN_CENTRE, "[5]Level 5"
+			);
+			break;
+		
 		} case STATE::LEVEL: {
 			break;
 		} case STATE::PAUSE: {
@@ -528,7 +547,10 @@ Game::game_draw() {
 			);
 			break;
 		}
-
+		case STATE::END:{
+			break;
+		}
+	}
     al_flip_display();
 }
 
