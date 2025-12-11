@@ -28,6 +28,11 @@ DataCenter::DataCenter() {
 	this->camerax=0.0f;
 	this->cameray=0.0f;
 
+	//add
+	ally_sel=false;
+	ally_type=-1;
+	ally_preview=-1;
+	
 	memset(key_state, false, sizeof(key_state));
 	memset(prev_key_state, false, sizeof(prev_key_state));
 	mouse = Point(0, 0);

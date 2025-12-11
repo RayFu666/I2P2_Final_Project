@@ -174,6 +174,7 @@ Game::game_update() {
 			static ALLEGRO_SAMPLE_INSTANCE *instance = nullptr;
 			if(!is_played) {
 				instance = SC->play(game_start_sound_path, ALLEGRO_PLAYMODE_ONCE);
+				al_set_sample_instance_gain(instance, 0.1f);
 				DC->level->load_level(5);
 				is_played = true;
 			}
@@ -187,6 +188,7 @@ Game::game_update() {
 			static bool BGM_played = false;
 			if(!BGM_played) {
 				background = SC->play(background_sound_path, ALLEGRO_PLAYMODE_LOOP);
+				al_set_sample_instance_gain(background, 0.1f);
 				BGM_played = true;
 			}
 
@@ -224,9 +226,14 @@ Game::game_update() {
         DC->hero->update();
 
 		//change
-        if (state == STATE::LEVEL &&
-            DC->mouse_state[1] && !DC->prev_mouse_state[1] &&
-            DC->mouse.x <MAP_WIDTH) {
+		if (state == STATE::
+			LEVEL&&
+            DC->mouse_state[1]&&
+			!DC->prev_mouse_state[1]&&
+            DC->mouse.x <MAP_WIDTH&&
+			DC->ally_sel&&
+			DC->ally_preview!=-1	
+		) {
 			
 			float cam_x=DC->camerax;
     		double world_x=DC->mouse.x+cam_x; 
@@ -234,17 +241,55 @@ Game::game_update() {
     		if (world_x>DC->game_field_length)world_x=DC->game_field_length;
 
 
-            int lane_id = AllyLaneSetting::nearest_lane_id(DC->mouse.y);
+            int lane_id=DC->ally_preview;
+			//double spawn_y=AllyLaneSetting::nearest_lane_id(DC->mouse.y);
             double spawn_y = AllyLaneSetting::lane_y_by_id(lane_id);
             Point spawn_pos{world_x, spawn_y };
 
             DC->allies.emplace_back(new Ally(spawn_pos, lane_id));
-        }
 
+			DC->ally_preview=-1;
+			DC->ally_sel=false;
+			DC->ally_type=-1;
+        }
+		//add
+        if (state == STATE::LEVEL &&
+            DC->mouse_state[1] && !DC->prev_mouse_state[1] &&
+            DC->mouse.x>=MAP_WIDTH) {
+			
+			// float cam_x=DC->camerax;
+    		// double world_x=DC->mouse.x+cam_x; 
+			// if(world_x<0)world_x=0;
+    		// if (world_x>DC->game_field_length)world_x=DC->game_field_length;
+
+
+            // int lane_id = AllyLaneSetting::nearest_lane_id(DC->mouse.y);
+            // double spawn_y = AllyLaneSetting::lane_y_by_id(lane_id);
+            // Point spawn_pos{world_x, spawn_y };
+
+            // DC->allies.emplace_back(new Ally(spawn_pos, lane_id));
+			DC->ally_sel=true;
+			DC->ally_type=0;
+        }
+		if(DC->ally_sel&&DC->mouse.x<MAP_WIDTH){
+            int lane_id=AllyLaneSetting::nearest_lane_id(DC->mouse.y);
+            DC->ally_preview=lane_id;
+        }else{
+            DC->ally_preview=-1;
+        }
         for (Ally* a : DC->allies) {
             a->update();
         }
-
+		auto &allies=DC->allies;
+		for(auto it=allies.begin();it!=allies.end();){
+			Ally* a=*it;
+			if (a->can_remove()){
+				delete a;
+				it=allies.erase(it);
+			}else{
+				it++;
+			}
+		}
         if (state != STATE::START) {
 			DC->level->update();
 			OC->update();
@@ -309,7 +354,19 @@ Game::game_draw() {
             for (Ally* a : DC->allies) {
                 a->draw();
             }
+			//add
+			if(DC->ally_sel&&DC->ally_preview!=-1){
+                double lane_y=AllyLaneSetting::lane_y_by_id(DC->ally_preview);
+                float half_h=20.0f;
 
+                al_draw_filled_rectangle(
+                    0.0f,
+                    static_cast<float>(lane_y - half_h),
+                    static_cast<float>(MAP_WIDTH),
+                    static_cast<float>(lane_y + half_h),
+                    al_map_rgba(255, 255, 255, 210)
+                );
+            }
             ui->draw();
 			OC->draw();
 		}

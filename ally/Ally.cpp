@@ -65,6 +65,11 @@ void Ally::update() {
     if (HP <= 0 && state != AllyState::DIE) {
         state = AllyState::DIE;
         target = nullptr;
+
+        //add
+        die_animation_cnt=die_animation_total;
+        die_alpha=1.0f;
+        die_scale=1.0f;
     }
 
     // 2. 動畫更新（目前 WALK / ATTACK 共用同一張走路圖）
@@ -164,8 +169,12 @@ void Ally::update() {
 
                           // ☠ DIE：原地不動，等外面把這隻 Ally 從 vector erase
     case AllyState::DIE: {
-        // 這裡先不做事，之後你在 Game 或 DataCenter/OperationCenter 那裡
-        // 會寫「掃 Allies，把 is_dead() 的 erase 掉」
+        if(die_animation_cnt>0){
+            die_animation_cnt--;
+        }
+        float t=1.0f-static_cast<float>(die_animation_cnt)/die_animation_total;
+        die_alpha=1.0f-t;
+        die_scale=1.0f-0.5f*t;
         break;
     }
     }
@@ -192,14 +201,29 @@ void Ally::draw() {
     double cx = shape->center_x();
     double cy = shape->center_y();
 
-	float sc_x=static_cast<float>(cx-cam_x-frame_w/2.0);
-	float sc_y=static_cast<float>(cy-cam_y-frame_h/2.0);
+    float draw_w=static_cast<float>(frame_w);
+    float draw_h=static_cast<float>(frame_h);
+    float alpha=1.0f;
 
-    al_draw_bitmap_region(
-        walk_sheet,
+    if (state==AllyState::DIE){
+        if (die_animation_cnt<=0)return;
+
+        draw_w=static_cast<float>(frame_w*die_scale);
+        draw_h=static_cast<float>(frame_h*die_scale);
+        alpha=die_alpha;
+    }
+
+	float sc_x=static_cast<float>(cx-cam_x-draw_w/2.0);
+	float sc_y=static_cast<float>(cy-cam_y-draw_h/2.0);
+
+    ALLEGRO_COLOR tint = al_map_rgba_f(1.0f,1.0f,1.0f,alpha);
+    al_draw_tinted_scaled_bitmap(
+        walk_sheet,tint,
         sx, sy, frame_w, frame_h,
         sc_x,
         sc_y,
+        draw_w,
+        draw_h,
         0
     );
 }

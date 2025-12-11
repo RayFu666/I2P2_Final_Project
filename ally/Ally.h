@@ -22,7 +22,10 @@ public:
     void draw();
 
     bool is_dead() const { return HP <= 0 || state == AllyState::DIE; }
-
+    //add
+    bool can_remove() const{
+        return(state==AllyState::DIE&&die_animation_cnt<=0);
+    }
     int lane() const { return lane_id; }
 
 public:
@@ -31,8 +34,8 @@ public:
 private:
     AllyState state = AllyState::WALK;
 
-    double v;          // 移動速度 (px/sec)
-    int lane_id;       // 第幾條線 0/1/2
+    double v;
+    int lane_id;
 
     ALLEGRO_BITMAP* walk_sheet;
     int frame;
@@ -41,14 +44,20 @@ private:
     int frame_switch_freq;
 
     Monster* target = nullptr;
-    int atk = 2;             // 攻擊力
+    int atk = 2;
     int attack_cooldown = 0;
     int attack_freq = 30;
-    double attack_range = 40;  // 可攻擊距離（x 差）
-    double lane_tolerance = 25; // 同一條線允許的 y 誤差
+    double attack_range = 40;
+    double lane_tolerance = 20;
+
+    //add
+    int die_animation_total=30;
+    int die_animation_cnt=0;
+    float die_alpha=1.0f;
+    float die_scale=1.0f;
 };
 
-// Ally.h 最下面 namespace 之外
+
 namespace AllyLaneSetting {
     constexpr int lane_count = 3;
     int nearest_lane_id(double y);
