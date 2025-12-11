@@ -42,6 +42,10 @@ public:
 	//add
 	float camerax;
 	float cameray;
+	//add
+	bool ally_sel=false;
+	int ally_type=-1;
+	int ally_preview=-1;
 	/**
 	 * @brief Stores the keyboard state whether a key is being pressed.
 	 * @details The states will be updated once a key is pressed, asynchronously with frame update.
@@ -72,6 +76,9 @@ public:
 	 * @see Game::game_update()
 	 */
 	bool prev_mouse_state[ALLEGRO_MOUSE_MAX_EXTRA_AXES];
+
+	//add
+	void clear_game();
 public:
 	/**
 	 * @brief Stores the basic information that a player should have.

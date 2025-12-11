@@ -6,7 +6,7 @@
 
 namespace {
     constexpr double lane_y_table[AllyLaneSetting::lane_count] = {
-        250.0, 300.0, 350.0
+        220.0, 300.0, 380.0
     };
 }
 
@@ -33,23 +33,21 @@ Ally::Ally(const Point& p, int lane_id)
     //DataCenter* DC = DataCenter::get_instance();
     ImageCenter* IC = ImageCenter::get_instance();
 
-    // 先用跟 CaveMan 一樣的 sprite sheet（之後你可以換）
     walk_sheet = IC->get("./assets/image/ally/black_dude.png");
 
-    HP = 10;   // 隨便先給
-    v = 60;   // 每秒 60px
+    HP = 30;
+    v = 60;
 
     frame = 0;
-    frame_count = 6;        // 3x2 = 6 幀
+    frame_count = 6;
     frame_switch_freq = 10;
     frame_switch_counter = 0;
 
     state = AllyState::WALK;
 
-    // 先把中心放在 p（p 是你指定的 x，y 之後會被「貼近 lane」）
     shape.reset(new Rectangle{ p.x, p.y, p.x, p.y });
 
-    atk = 2;
+    atk = 3;
     attack_freq = 30;       // 30 frame 打一次 ≈ 0.5 秒
     attack_cooldown = 0;
     attack_range = 40.0;
@@ -65,6 +63,11 @@ void Ally::update() {
     if (HP <= 0 && state != AllyState::DIE) {
         state = AllyState::DIE;
         target = nullptr;
+
+        //add
+        die_animation_cnt=die_animation_total;
+        die_alpha=1.0f;
+        die_scale=1.0f;
     }
 
     // 2. 動畫更新（目前 WALK / ATTACK 共用同一張走路圖）
@@ -164,8 +167,12 @@ void Ally::update() {
 
                           // ☠ DIE：原地不動，等外面把這隻 Ally 從 vector erase
     case AllyState::DIE: {
-        // 這裡先不做事，之後你在 Game 或 DataCenter/OperationCenter 那裡
-        // 會寫「掃 Allies，把 is_dead() 的 erase 掉」
+        if(die_animation_cnt>0){
+            die_animation_cnt--;
+        }
+        float t=1.0f-static_cast<float>(die_animation_cnt)/die_animation_total;
+        die_alpha=1.0f-t;
+        die_scale=1.0f-0.5f*t;
         break;
     }
     }
@@ -184,15 +191,37 @@ void Ally::draw() {
 
     int sx = col * frame_w;
     int sy = row * frame_h;
+    //add
+    DataCenter *DC=DataCenter::get_instance();
+	float cam_x=DC->camerax;
+	float cam_y=DC->cameray;
 
     double cx = shape->center_x();
     double cy = shape->center_y();
 
-    al_draw_bitmap_region(
-        walk_sheet,
+    float draw_w=static_cast<float>(frame_w);
+    float draw_h=static_cast<float>(frame_h);
+    float alpha=1.0f;
+
+    if (state==AllyState::DIE){
+        if (die_animation_cnt<=0)return;
+
+        draw_w=static_cast<float>(frame_w*die_scale);
+        draw_h=static_cast<float>(frame_h*die_scale);
+        alpha=die_alpha;
+    }
+
+	float sc_x=static_cast<float>(cx-cam_x-draw_w/2.0);
+	float sc_y=static_cast<float>(cy-cam_y-draw_h/2.0);
+
+    ALLEGRO_COLOR tint = al_map_rgba_f(1.0f,1.0f,1.0f,alpha);
+    al_draw_tinted_scaled_bitmap(
+        walk_sheet,tint,
         sx, sy, frame_w, frame_h,
-        cx - frame_w / 2,
-        cy - frame_h / 2,
+        sc_x,
+        sc_y,
+        draw_w,
+        draw_h,
         0
     );
 }

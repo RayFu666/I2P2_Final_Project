@@ -17,13 +17,13 @@ private:
 	enum class STATE {
 		HALT, // -> HOVER
 		HOVER, // -> HALT, SELECT
-		SELECT, // -> HALT, PLACE
-		PLACE // -> HALT
+		//SELECT, // -> HALT, PLACE
+		//PLACE // -> HALT
 	};
 	STATE state;
 	ALLEGRO_BITMAP *love;
 	// tower menu bitmap, (top-left x, top-left y), price
-	std::vector<std::tuple<ALLEGRO_BITMAP*, Point, int>> tower_items;
+	std::vector<std::tuple<ALLEGRO_BITMAP*, Point, int>> ally_place;
 	int on_item;
 };
 

@@ -7,7 +7,8 @@
 #include "shapes/Point.h"
 #include "shapes/Rectangle.h"
 #include <array>
-
+//add
+#include<cstdlib> 
 using namespace std;
 
 // fixed settings
@@ -47,8 +48,9 @@ Level::load_level(int lvl) {
 	FILE *f = fopen(buffer, "r");
 	GAME_ASSERT(f != nullptr, "cannot find level.");
 	level = lvl;
+	//change
 	grid_w = DC->game_field_length / LevelSetting::grid_size[lvl];
-	grid_h = DC->game_field_length / LevelSetting::grid_size[lvl];
+	grid_h = DC->window_height / LevelSetting::grid_size[lvl];
 	num_of_monsters.clear();
 	road_path.clear();
 
@@ -59,13 +61,19 @@ Level::load_level(int lvl) {
 		fscanf(f, "%d", &num);
 		num_of_monsters.emplace_back(num);
 	}
-
+	//change
 	// read road path
-	while(fscanf(f, "%d", &num) != EOF) {
-		int w = num % grid_w;
-		int h = num / grid_h;
-		road_path.emplace_back(w, h);
-	}
+	int lane_rows[3];
+    lane_rows[0]=grid_h/2-2;
+    lane_rows[1]=grid_h/2;
+    lane_rows[2]=grid_h/2+2;
+
+    for (int i=0;i<3;i++){
+        int h=lane_rows[i];
+        for (int w=0;w<grid_w;w++){
+            road_path.emplace_back(w,h);
+        }
+    }
 	debug_log("<Level> load level %d.\n", lvl);
 }
 
@@ -82,7 +90,23 @@ Level::update() {
 
 	for(size_t i = 0; i < num_of_monsters.size(); ++i) {
 		if(num_of_monsters[i] == 0) continue;
-        DC->monsters.emplace_back(Monster::create_monster(static_cast<MonsterType>(i), DC->level->get_road_path()));
+        //add
+		const int lane_cnt=3;
+		int lane_rows[lane_cnt];
+		lane_rows[0]=grid_h/2-2;
+    	lane_rows[1]=grid_h/2;
+		lane_rows[2]=grid_h/2+2;
+
+		int lane_idx=rand()%lane_cnt;
+		int h=lane_rows[lane_idx];
+
+		std::vector<Point> lane_path;
+        lane_path.reserve(grid_w);
+        for (int w=0;w<grid_w;w++){
+            lane_path.emplace_back(w, h);
+        }
+
+		DC->monsters.emplace_back(Monster::create_monster(static_cast<MonsterType>(i),lane_path));
         num_of_monsters[i]--;
 		break;
 	}

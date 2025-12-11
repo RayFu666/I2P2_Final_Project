@@ -28,6 +28,11 @@ DataCenter::DataCenter() {
 	this->camerax=0.0f;
 	this->cameray=0.0f;
 
+	//add
+	ally_sel=false;
+	ally_type=-1;
+	ally_preview=-1;
+	
 	memset(key_state, false, sizeof(key_state));
 	memset(prev_key_state, false, sizeof(prev_key_state));
 	mouse = Point(0, 0);
@@ -53,4 +58,29 @@ DataCenter::~DataCenter() {
         delete b;
     }
     for (Ally*& a : allies) delete a;
+}
+//add
+void
+DataCenter::clear_game(){
+	for(Monster*& m:monsters){
+        delete m;
+    }
+    monsters.clear();
+
+    for(Tower*& t:towers){
+        delete t;
+    }
+    towers.clear();
+
+    for(Bullet*& b:towerBullets){
+        delete b;
+    }
+    towerBullets.clear();
+
+    for(Ally*& a:allies){
+        delete a;
+    }
+    allies.clear();
+
+
 }

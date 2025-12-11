@@ -6,7 +6,8 @@
 #include "../Player.h"
 
 #include "../Hero.h"
-
+//add
+#include"../Utils.h"
 void OperationCenter::update() {
 	// Update monsters.
 	_update_monster();
@@ -52,6 +53,7 @@ void OperationCenter::_update_monster_towerBullet() {
 	DataCenter *DC = DataCenter::get_instance();
 	std::vector<Monster*> &monsters = DC->monsters;
 	std::vector<Bullet*> &towerBullets = DC->towerBullets;
+	
 	for(size_t i = 0; i < monsters.size(); ++i) {
 		for(size_t j = 0; j < towerBullets.size(); ++j) {
 			// Check if the bullet overlaps with the monster.
@@ -69,26 +71,26 @@ void OperationCenter::_update_monster_towerBullet() {
 void OperationCenter::_update_monster_player() {
 	DataCenter *DC = DataCenter::get_instance();
 	std::vector<Monster*> &monsters = DC->monsters;
-	Player *&player = DC->player;
-	for(size_t i = 0; i < monsters.size(); ++i) {
-		// Check if the monster is killed.
-		if(monsters[i]->HP <= 0) {
-			// Monster gets killed. Player receives money.
-			player->coin += monsters[i]->get_money();
-			// delete monsters[i];
-			// monsters.erase(monsters.begin() + i);
-			// --i;
-			// // Since the current monsster is killed, we can directly proceed to next monster.
-            // break;
+	//std::vector<Bullet*> &towerBullets = DC->towerBullets;
+	Player *player=DC->player;
+	for(size_t i = 0; i < monsters.size();){
+		//change
+		Monster *m=monsters[i];
+		if(m->HP<=0){
+			player->coin+=m->get_money();
+			delete m;
+			//debug
+			debug_log("[Player] kill monster, +%d, coin = %d\n", m->get_money(), player->coin);
+			monsters.erase(monsters.begin()+i);
+			continue;
+		}
+		if(m->get_path().empty()){
+            delete m;
+            monsters.erase(monsters.begin()+i);
+            player->HP--;
             continue;
         }
-		// Check if the monster reaches the end.
-		if(monsters[i]->get_path().empty()) {
-			delete monsters[i];
-			monsters.erase(monsters.begin() + i);
-			player->HP--;
-			--i;
-		}
+		i++;
 	}
 }
 

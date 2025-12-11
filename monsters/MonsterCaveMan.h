@@ -11,10 +11,11 @@ public:
 		HP = 25;
 		v = 40;
         money = 20;
+		atk=3;
         bitmap_switch_freq = 10;
         bitmap_img_ids.clear();
         for (int d = 0; d < 4; ++d) {
-            bitmap_img_ids.emplace_back(std::vector<int>{0,1,2,3,4,5});
+            bitmap_img_ids.emplace_back(std::vector<int>{0,1,2,3});
         }
 
         
