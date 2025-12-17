@@ -183,20 +183,30 @@ UI::draw() {
 	//add
 	constexpr int MAP_WIDTH=600;
 	const int panel=MAP_WIDTH;
-	int love_width = al_get_bitmap_width(love);
-	for(int i = 1; i <= player_HP; ++i) {
-		al_draw_bitmap(
-			love,
-			//change
-			panel+love_img_padding + (love_width + love_img_padding) * i,
-			love_img_padding,
-			0
-		);
-	}
+	ALLEGRO_FONT* hp_font=FC->courier_new[FontSize::LARGE];
+	//add
+	al_draw_textf(
+		FC->courier_new[FontSize::MEDIUM],
+		al_map_rgb(255,0,0),
+		panel + love_img_padding,
+		DC->window_height+love_img_padding-al_get_font_line_height(hp_font),
+		ALLEGRO_ALIGN_LEFT,
+		"HP: %d", player_HP
+	);
+	// int love_width = al_get_bitmap_width(love);
+	// for(int i = 1; i <= player_HP; ++i) {
+	// 	al_draw_bitmap(
+	// 		love,
+	// 		//change
+	// 		panel+love_img_padding + (love_width + love_img_padding) * i,
+	// 		love_img_padding,
+	// 		0
+	// 	);
+	// }
 	// draw coin
 	const int &player_coin = DC->player->coin;
 	al_draw_textf(
-		FC->courier_new[FontSize::MEDIUM], al_map_rgb(0, 0, 0),
+		FC->courier_new[FontSize::MEDIUM],al_map_rgb(0, 0, 0),
 		panel+love_img_padding,
 		love_img_padding,
 		ALLEGRO_ALIGN_LEFT, "coin: %5d", player_coin);
