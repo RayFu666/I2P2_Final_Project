@@ -10,6 +10,8 @@
 
 #include "Hero.h"
 #include "ally/Ally.h"
+#include "ally/BasicAlly.h"
+#include "ally/VikingMan.h"
 
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_font.h>
@@ -18,6 +20,7 @@
 #include <allegro5/allegro_acodec.h>
 #include <vector>
 #include <cstring>
+#include "BaseTower.h"
 
 // fixed settings
 constexpr char game_icon_img_path[] = "./assets/image/game_icon.png";
@@ -189,6 +192,24 @@ bool Game::game_update() {
             DC->clear_game();
             DC->level->init();
             DC->level->load_level(cur_level);
+            // ===== init bases (world objects) =====
+            ImageCenter* IC = ImageCenter::get_instance();
+            ALLEGRO_BITMAP* baseBmp = IC->get("./assets/image/tower.png");
+            // ↑ 改成你找到的那張 162x300 的路徑
+
+            int bw = al_get_bitmap_width(baseBmp);
+            int bh = al_get_bitmap_height(baseBmp);
+
+            // y 位置：先用「置中」(最快看效果)
+            double y_top = (DC->window_height - bh) / 2.0 - 40.0;
+
+            // 左邊塔：貼世界最左
+            DC->left_base = new BaseTower(Point{ 0.0, y_top }, baseBmp);
+
+            // 右邊塔：貼世界最右
+            double right_x = (double)DC->game_field_length - bw;
+            DC->right_base = new BaseTower(Point{ right_x, y_top }, baseBmp);
+
             DC->hero->init();
             DC->player->rst();
 
@@ -295,24 +316,27 @@ bool Game::game_update() {
                 double spawn_y = AllyLaneSetting::lane_y_by_id(lane_id);
                 Point spawn_pos{ world_x, spawn_y };
 
-                DC->allies.emplace_back(new Ally(spawn_pos, lane_id));
+                debug_log("[Game] Place ally_type = %d at lane=%d\n", (int)DC->ally_type, lane_id);
+                if (DC->ally_type == AllyType::BASIC) {
+                    DC->allies.emplace_back(new BasicAlly(spawn_pos, lane_id));
+                }
+                else if (DC->ally_type == AllyType::VIKINGMAN) {
+                    DC->allies.emplace_back(new VikingMan(spawn_pos, lane_id));
+                }
+                else {
+                    
+                }
+
+                debug_log("[Game] Spawn done.\n");
 
                 DC->player->coin -= ALLY_COST;
                 DC->ally_preview = -1;
                 DC->ally_sel = false;
-                DC->ally_type = -1;
+                DC->ally_type = AllyType::NONE;
             }
             else {
                 debug_log("Not enough coin to summon Ally. coin = %d\n", DC->player->coin);
             }
-        }
-
-        if (state == STATE::LEVEL &&
-            DC->mouse_state[1] && !DC->prev_mouse_state[1] &&
-            DC->mouse.x >= MAP_WIDTH) {
-
-            DC->ally_sel = true;
-            DC->ally_type = 0;
         }
 
         if (DC->ally_sel && DC->mouse.x < MAP_WIDTH) {
@@ -391,6 +415,8 @@ void Game::game_draw() {
 
         if (state != STATE::START) {
             DC->level->draw();
+            if (DC->left_base)  DC->left_base->draw();
+            if (DC->right_base) DC->right_base->draw();
             DC->hero->draw();
 
             for (Ally* a : DC->allies) {

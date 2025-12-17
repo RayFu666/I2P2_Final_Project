@@ -69,30 +69,31 @@ void OperationCenter::_update_monster_towerBullet() {
 }
 
 void OperationCenter::_update_monster_player() {
-	DataCenter *DC = DataCenter::get_instance();
-	std::vector<Monster*> &monsters = DC->monsters;
-	//std::vector<Bullet*> &towerBullets = DC->towerBullets;
-	Player *player=DC->player;
-	for(size_t i = 0; i < monsters.size();){
-		//change
-		Monster *m=monsters[i];
-		if(m->HP<=0){
-			player->coin+=m->get_money();
-			delete m;
-			//debug
-			debug_log("[Player] kill monster, +%d, coin = %d\n", m->get_money(), player->coin);
-			monsters.erase(monsters.begin()+i);
-			continue;
-		}
-		// if(m->get_path().empty()){
-        //     delete m;
-        //     monsters.erase(monsters.begin()+i);
-        //     player->HP--;
-        //     continue;
-        // }
-		i++;
-	}
+    DataCenter* DC = DataCenter::get_instance();
+    std::vector<Monster*>& monsters = DC->monsters;
+    Player* player = DC->player;
+
+    for (size_t i = 0; i < monsters.size(); ) {
+        Monster* m = monsters[i];
+
+        // 先讓 coin 只加一次：最簡單先在 Monster 加個 rewarded flag（見下方）
+        if (m->HP <= 0 && !m->rewarded) {
+            int reward = m->get_money();
+            player->coin += reward;
+            m->rewarded = true;
+            debug_log("[Player] kill monster, +%d, coin = %d\n", reward, player->coin);
+        }
+
+        if (m->can_remove()) {
+            delete m;
+            monsters.erase(monsters.begin() + i);
+            continue;
+        }
+
+        ++i;
+    }
 }
+
 
 void OperationCenter::_update_monster_hero() {
     DataCenter* DC = DataCenter::get_instance();

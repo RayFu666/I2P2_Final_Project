@@ -5,6 +5,7 @@
 #include <vector>
 #include <tuple>
 #include "./shapes/Point.h"
+#include "data/DataCenter.h"
 
 class UI
 {
@@ -23,7 +24,7 @@ private:
 	STATE state;
 	ALLEGRO_BITMAP *love;
 	// tower menu bitmap, (top-left x, top-left y), price
-	std::vector<std::tuple<ALLEGRO_BITMAP*, Point, int>> ally_place;
+    std::vector<std::tuple<ALLEGRO_BITMAP*, Point, int, AllyType>> ally_place;
 	int on_item;
 };
 
