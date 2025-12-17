@@ -3,7 +3,8 @@
 #include "data/ImageCenter.h"
 #include "shapes/Rectangle.h"
 #include <allegro5/bitmap_draw.h>
-
+#include "Utils.h"
+#include "Player.h"
 namespace HeroSetting {
 
     static constexpr char sprite_path[] = "./assets/image/PlayHero_3.png";
@@ -13,6 +14,12 @@ namespace HeroSetting {
 
     static constexpr int WALK_START=0;
     static constexpr int WALK_FRAMES=7;
+
+    static constexpr int SKILL_COST=50;
+    static constexpr double SKILL_RADIUS=120.0;
+    static constexpr double SKILL_SPEED_BONUS=60;
+    static constexpr int SKILL_ATK_BONUS=1;
+    static constexpr double SKILL_DURATION=3.0;
 }
 
 void Hero::init() {
@@ -102,10 +109,40 @@ void Hero::update() {
         frame = 0;
         anim_counter = 0;
     }
+
+    if(skill_timer>0){
+        skill_timer--;
+    }
+    if(DC->key_state[ALLEGRO_KEY_Q]&&!DC->prev_key_state[ALLEGRO_KEY_Q]){
+        if(skill_timer<=0&&DC->player->coin>=HeroSetting::SKILL_COST){
+            DC->player->coin-=HeroSetting::SKILL_COST;
+
+            int duration_frames=
+                static_cast<int>(HeroSetting::SKILL_DURATION*DC->FPS);
+            skill_timer=duration_frames;
+            //debug
+            debug_log("[Hero] Skill activated.\n");
+        }
+    }
 }
 double Hero::center_x() const {
     return shape->center_x();
 }
 double Hero::center_y() const {
     return shape->center_y();
+}
+//add
+bool Hero::skill_radius(double x,double y)const{
+    if (skill_timer <= 0) return false;
+    double dx=center_x()-x;
+    double dy=center_y()-y;
+    return (dx*dx+dy*dy)<=HeroSetting::SKILL_RADIUS*HeroSetting::SKILL_RADIUS;
+}
+
+double Hero::skill_speed_bonus()const{
+    return HeroSetting::SKILL_SPEED_BONUS;
+}
+
+int Hero::skill_atk_bonus()const{
+    return HeroSetting::SKILL_ATK_BONUS;
 }

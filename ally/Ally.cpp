@@ -4,6 +4,7 @@
 #include <allegro5/bitmap_draw.h>
 #include "../monsters/Monster.h"
 #include "../Utils.h"
+#include "../Hero.h"
 namespace {
     constexpr double lane_y_table[AllyLaneSetting::lane_count] = {
         220.0, 300.0, 380.0
@@ -106,9 +107,16 @@ void Ally::update() {
     double cx = shape->center_x();
     double cy = shape->center_y();
 
+    double speed_bonus=v;
+    int atk_bonus=atk;
+    Hero *hero=DC->hero;
+    if (hero&&hero->skill_active()&&hero->skill_radius(cx, cy)){
+        speed_bonus+=hero->skill_speed_bonus();
+        atk_bonus+=hero->skill_atk_bonus();
+    }
     switch (state) {
     case AllyState::WALK: {
-        double dx = v / DC->FPS;
+        double dx = speed_bonus / DC->FPS;
         shape->update_center_x(cx - dx);
 
         shape->update_center_y(AllyLaneSetting::lane_y_by_id(lane_id));
@@ -182,7 +190,7 @@ void Ally::update() {
                 if(attack_cooldown>0){
                     --attack_cooldown;
                 }else{
-                    target->take_damage(atk);
+                    target->take_damage(atk_bonus);
                     HP-=1;
                     attack_cooldown=attack_freq;
                 }
@@ -197,7 +205,7 @@ void Ally::update() {
         if(attack_cooldown>0){
             --attack_cooldown;
         }else{
-            DC->enemy_base_hp-=atk;
+            DC->enemy_base_hp-=atk_bonus;
             if(DC->enemy_base_hp<0)DC->enemy_base_hp=0;
 
             // debug_log("[EnemyBase] took %d damage, HP = %d\n",

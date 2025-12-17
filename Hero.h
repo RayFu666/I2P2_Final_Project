@@ -24,6 +24,11 @@ public:
     //add
     double center_x() const;
     double center_y() const;
+
+    bool skill_active()const{return skill_timer>0;}
+    bool skill_radius(double x,double y)const;
+    double skill_speed_bonus()const;
+    int skill_atk_bonus()const;
 private:
     HeroState state = HeroState::FRONT;
     double speed = 5;
@@ -36,6 +41,8 @@ private:
 
     int anim_counter=0;
     int anim_speed=6;
+
+    int skill_timer=0;
 };
 
 
