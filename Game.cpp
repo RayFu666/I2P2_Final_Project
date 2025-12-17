@@ -185,8 +185,8 @@ Game::game_update() {
 			if(DC->key_state[ALLEGRO_KEY_1]&&!DC->prev_key_state[ALLEGRO_KEY_1])selected=1;
 			if(DC->key_state[ALLEGRO_KEY_2]&&!DC->prev_key_state[ALLEGRO_KEY_2])selected=2;
 			if(DC->key_state[ALLEGRO_KEY_3]&&!DC->prev_key_state[ALLEGRO_KEY_3])selected=3;
-			if(DC->key_state[ALLEGRO_KEY_4]&&!DC->prev_key_state[ALLEGRO_KEY_4])selected=4;
-			if(DC->key_state[ALLEGRO_KEY_5]&&!DC->prev_key_state[ALLEGRO_KEY_5])selected=5;
+			//if(DC->key_state[ALLEGRO_KEY_4]&&!DC->prev_key_state[ALLEGRO_KEY_4])selected=4;
+			//if(DC->key_state[ALLEGRO_KEY_5]&&!DC->prev_key_state[ALLEGRO_KEY_5])selected=5;
 			if(selected!=-1){
 				cur_level=selected;
 				DC->clear_game();
@@ -194,7 +194,15 @@ Game::game_update() {
 				DC->level->load_level(cur_level);
 				DC->hero->init();
 				DC->player->rst();
+				
+				//add
+				if(cur_level==1){
+					tutorial_stage=TutorialStage::MOVE;
 
+				}else{
+
+					tutorial_stage=TutorialStage::NONE;
+				}
 				debug_log("<Game> state: change to LEVEL\n");
 			 	state=STATE::LEVEL;
 			}
@@ -224,6 +232,10 @@ Game::game_update() {
 				debug_log("<Game> state: change to LOSE\n");
 				//change
 				state = STATE::LOSE;
+			}
+			//add
+			if(cur_level==1){
+				update_tutorial();
 			}
 			break;
 		} case STATE::PAUSE: {
@@ -354,6 +366,11 @@ Game::game_update() {
 		}
         if (state != STATE::START) {
 			DC->level->update();
+			if(cur_level==1){
+				DC->tutorial_speed=0.2;
+			}else{
+				DC->tutorial_speed=1.0;
+			}
 			OC->update();
 		}
 	}
@@ -379,6 +396,110 @@ Game::game_update() {
 	memcpy(DC->prev_key_state, DC->key_state, sizeof(DC->key_state));
 	memcpy(DC->prev_mouse_state, DC->mouse_state, sizeof(DC->mouse_state));
 	return true;
+}
+//add
+void
+Game::update_tutorial(){
+	if(cur_level!=1)return;
+	DataCenter *DC=DataCenter::get_instance();
+
+	if(tutorial_stage==TutorialStage::MOVE){
+		if(DC->key_state[ALLEGRO_KEY_W]&&!DC->prev_key_state[ALLEGRO_KEY_W]){
+			tutorial_stage=TutorialStage::INTRO;
+		}
+	}else if(tutorial_stage==TutorialStage::INTRO){
+		if(DC->mouse_state[1]&&!DC->prev_mouse_state[1]){
+			tutorial_stage=TutorialStage::SELECT_ALLY;
+		}
+	}else if(tutorial_stage==TutorialStage::SELECT_ALLY){
+		if(DC->ally_sel){
+			tutorial_stage=TutorialStage::PLACE_ALLY;
+		}
+	}else if(tutorial_stage==TutorialStage::PLACE_ALLY){
+		if(!DC->allies.empty()){
+			tutorial_stage=TutorialStage::WAIT_KILL_ONE;
+		}
+	}else if(tutorial_stage==TutorialStage::WAIT_KILL_ONE){
+		if(DC->monster_kill>=1){
+			tutorial_stage=TutorialStage::FINISHED;
+		}
+	}else if(tutorial_stage==TutorialStage::FINISHED){
+		
+	}
+}
+void Game::draw_tutorial() {
+    if (cur_level != 1) return;
+    if (tutorial_stage == TutorialStage::NONE ||
+        tutorial_stage == TutorialStage::FINISHED) return;
+
+    DataCenter* DC = DataCenter::get_instance();
+    FontCenter* FC = FontCenter::get_instance();
+
+    const char* line1 = nullptr;
+    const char* line2 = nullptr;
+
+    switch (tutorial_stage) {
+	case TutorialStage::MOVE:
+		line1 = "WELCOME TO TUTORIAL!";
+        line2 = "use WASD to move.[Press W to continue]";
+		break;
+    case TutorialStage::INTRO:
+        line1 = "THE ONLY THING TO DO...";
+        line2 = "Is to DESTROY the enemy![Left click to continue]";
+        break;
+    case TutorialStage::SELECT_ALLY:
+        line1 = "However,we cannot do it by ourself.";
+        line2 = "Let's summon our allies!Left click to select them!";
+        break;
+    case TutorialStage::PLACE_ALLY:
+        line1 = "They're three roads you can choose.";
+        line2 = "Left click any roads to summon them!";
+        break;
+    case TutorialStage::WAIT_KILL_ONE:
+        line1 = "Killing monsters...";
+        line2 = "You can get money from killing monsters.";
+        break;
+	// case TutorialStage::WAIT_KILL_ONE:
+    //     line1 = "Killing monsters...";
+    //     line2 = "The GOAL is to destroy the enemy tower!";
+    //     break;
+	// case TutorialStage::WAIT_KILL_ONE:
+    //     line1 = "Killing monsters...";
+    //     line2 = "The GOAL is to destroy the enemy tower!";
+    //     break;
+    default:
+        return;
+    }
+
+    float box_w=540.0f;
+    float box_h=80.0f;
+    float box_x=30.0f;
+    float box_y=DC->window_height - box_h - 40.0f;
+
+    al_draw_filled_rectangle(
+        box_x, box_y,
+        box_x + box_w, box_y + box_h,
+        al_map_rgba(0, 0, 0, 180)
+    );
+    al_draw_rectangle(
+        box_x, box_y,
+        box_x + box_w, box_y + box_h,
+        al_map_rgb(255, 255, 255),
+        2
+    );
+
+    al_draw_text(
+        FC->caviar_dreams[FontSize::MEDIUM], al_map_rgb(255, 255, 255),
+        box_x + 20, box_y + 15,
+        ALLEGRO_ALIGN_LEFT, line1
+    );
+    if (line2) {
+        al_draw_text(
+            FC->caviar_dreams[FontSize::MEDIUM], al_map_rgb(230, 230, 230),
+            box_x + 20, box_y + 45,
+            ALLEGRO_ALIGN_LEFT, line2
+        );
+    }
 }
 
 /**
@@ -442,6 +563,10 @@ Game::game_draw() {
 			ui->draw();
 		}
         
+		//add
+		if(state==STATE::LEVEL&&cur_level==1){
+			draw_tutorial();
+		}
     }
 	switch (state) {
 		case STATE::START: {
@@ -457,28 +582,28 @@ Game::game_draw() {
 			al_draw_text(
 				FC->caviar_dreams[FontSize::MEDIUM], al_map_rgb(255, 255, 255),
 				DC->window_width / 2.0, 220,
-				ALLEGRO_ALIGN_CENTRE, "[1]Level 1"
+				ALLEGRO_ALIGN_CENTRE, "[1]tutorial"
 			);
 			al_draw_text(
 				FC->caviar_dreams[FontSize::MEDIUM], al_map_rgb(255, 255, 255),
 				DC->window_width / 2.0, 260,
-				ALLEGRO_ALIGN_CENTRE, "[2]Level 2"
+				ALLEGRO_ALIGN_CENTRE, "[2]easy"
 			);
 			al_draw_text(
 				FC->caviar_dreams[FontSize::MEDIUM], al_map_rgb(255, 255, 255),
 				DC->window_width / 2.0, 300,
-				ALLEGRO_ALIGN_CENTRE, "[3]Level 3"
+				ALLEGRO_ALIGN_CENTRE, "[3]hard"
 			);
-			al_draw_text(
-				FC->caviar_dreams[FontSize::MEDIUM], al_map_rgb(255, 255, 255),
-				DC->window_width / 2.0, 340,
-				ALLEGRO_ALIGN_CENTRE, "[4]Level 4"
-			);
-			al_draw_text(
-				FC->caviar_dreams[FontSize::MEDIUM], al_map_rgb(255, 255, 255),
-				DC->window_width / 2.0, 380,
-				ALLEGRO_ALIGN_CENTRE, "[5]Level 5"
-			);
+			// al_draw_text(
+			// 	FC->caviar_dreams[FontSize::MEDIUM], al_map_rgb(255, 255, 255),
+			// 	DC->window_width / 2.0, 340,
+			// 	ALLEGRO_ALIGN_CENTRE, "[4]Level 4"
+			// );
+			// al_draw_text(
+			// 	FC->caviar_dreams[FontSize::MEDIUM], al_map_rgb(255, 255, 255),
+			// 	DC->window_width / 2.0, 380,
+			// 	ALLEGRO_ALIGN_CENTRE, "[5]Level 5"
+			// );
 			break;
 		
 		} case STATE::LEVEL: {

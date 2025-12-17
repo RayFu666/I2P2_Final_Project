@@ -32,7 +32,10 @@ DataCenter::DataCenter() {
 	ally_sel=false;
 	ally_type=-1;
 	ally_preview=-1;
-	
+	//add
+    monster_kill=0;
+    tutorial_speed=1.0;
+
 	memset(key_state, false, sizeof(key_state));
 	memset(prev_key_state, false, sizeof(prev_key_state));
 	mouse = Point(0, 0);
@@ -81,6 +84,6 @@ DataCenter::clear_game(){
         delete a;
     }
     allies.clear();
-
+    monster_kill=0;
 
 }

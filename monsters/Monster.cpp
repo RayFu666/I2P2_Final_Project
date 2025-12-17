@@ -108,13 +108,12 @@ bool Monster::is_dead() const {
  * @details * Update the real bounding box by the center of the hit box calculated as above.
  */
 
-  // 走路狀態的更新：沿著 path 走、更新方向與碰撞框
+
 void Monster::update_walk_state() {
     DataCenter* DC = DataCenter::get_instance();
     ImageCenter* IC = ImageCenter::get_instance();
-
-    // 1️⃣ 先沿著 path 走路（這段就是舊版 update 裡的邏輯）
-    double movement = v / DC->FPS;
+    //change
+    double movement = v*DC->tutorial_speed / DC->FPS;
 
     while (!path.empty() && movement > 0) {
         const Point& grid = this->path.front();
@@ -127,7 +126,6 @@ void Monster::update_walk_state() {
         );
         Dir tmpdir;
         if (d < movement) {
-            // 可以直接走到 next_goal，扣掉這段距離
             movement -= d;
             tmpdir = convert_dir(
                 Point{ next_goal.x - shape->center_x(),
@@ -138,7 +136,6 @@ void Monster::update_walk_state() {
             path.pop();
         }
         else {
-            // 只能走 movement 那麼多
             double dx = (next_goal.x - shape->center_x()) / d * movement;
             double dy = (next_goal.y - shape->center_y()) / d * movement;
             tmpdir = convert_dir(Point{ dx, dy });

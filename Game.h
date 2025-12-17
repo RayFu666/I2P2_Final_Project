@@ -8,6 +8,16 @@
  * @brief Main class that runs the whole game.
  * @details All game procedures must be processed through this class.
  */
+//add
+enum class TutorialStage{
+    NONE,
+    INTRO,
+	MOVE,
+    SELECT_ALLY,
+    PLACE_ALLY,
+    WAIT_KILL_ONE,
+    FINISHED
+};
 class Game
 {
 public:
@@ -44,6 +54,11 @@ private:
 
 	//add
 	int cur_level=1;
+//add
+private:
+	TutorialStage tutorial_stage=TutorialStage::NONE;
+    void update_tutorial();
+    void draw_tutorial();
 };
 
 #endif

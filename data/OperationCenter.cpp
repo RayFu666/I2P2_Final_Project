@@ -78,6 +78,7 @@ void OperationCenter::_update_monster_player() {
 		Monster *m=monsters[i];
 		if(m->HP<=0){
 			player->coin+=m->get_money();
+			DC->monster_kill++;
 			delete m;
 			//debug
 			debug_log("[Player] kill monster, +%d, coin = %d\n", m->get_money(), player->coin);
