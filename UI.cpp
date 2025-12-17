@@ -31,10 +31,14 @@ UI::init() {
 	//int max_height = 0;
 	// arrange tower shop
 
-	ALLEGRO_BITMAP *bitmap = IC->get("./assets/image/ally/black_dude.png");
-	int ally_price=50;
+	//add
+	ALLEGRO_BITMAP *bitmap1 = IC->get("./assets/image/ally/black_dude.png");
+	ALLEGRO_BITMAP *bitmap2 = IC->get("./assets/image/ally/viking_hammerman_test.png");
+	int ally1_price=50;
+	int ally2_price=100;
 	ally_place.clear();
-	ally_place.emplace_back(bitmap,Point{tl_x,tl_y},ally_price);
+	ally_place.emplace_back(bitmap1,Point{tl_x,tl_y},ally1_price);
+	ally_place.emplace_back(bitmap2,Point{tl_x+60/*spacing*/,tl_y},ally2_price);
 	//for(size_t i = 0; i < (size_t)(TowerType::TOWERTYPE_MAX); ++i) {
 		//change
 		

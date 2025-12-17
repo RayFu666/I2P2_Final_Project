@@ -321,7 +321,9 @@ Game::game_update() {
 				double spawn_y = AllyLaneSetting::lane_y_by_id(lane_id);
 				Point spawn_pos{world_x, spawn_y };
 
-				DC->allies.emplace_back(new Ally(spawn_pos, lane_id));
+				//add
+				Allytype type=static_cast<Allytype>(DC->ally_type);
+				DC->allies.emplace_back(new Ally(spawn_pos, lane_id,type));
 
 				DC->player->coin-=ALLY_COST;
 				DC->ally_preview=-1;
@@ -334,24 +336,24 @@ Game::game_update() {
 			
         }
 		//add
-        if (state == STATE::LEVEL &&
-            DC->mouse_state[1] && !DC->prev_mouse_state[1] &&
-            DC->mouse.x>=MAP_WIDTH) {
+        // if (state == STATE::LEVEL &&
+        //     DC->mouse_state[1] && !DC->prev_mouse_state[1] &&
+        //     DC->mouse.x>=MAP_WIDTH) {
 			
-			// float cam_x=DC->camerax;
-    		// double world_x=DC->mouse.x+cam_x; 
-			// if(world_x<0)world_x=0;
-    		// if (world_x>DC->game_field_length)world_x=DC->game_field_length;
+		// 	// float cam_x=DC->camerax;
+    	// 	// double world_x=DC->mouse.x+cam_x; 
+		// 	// if(world_x<0)world_x=0;
+    	// 	// if (world_x>DC->game_field_length)world_x=DC->game_field_length;
 
 
-            // int lane_id = AllyLaneSetting::nearest_lane_id(DC->mouse.y);
-            // double spawn_y = AllyLaneSetting::lane_y_by_id(lane_id);
-            // Point spawn_pos{world_x, spawn_y };
+        //     // int lane_id = AllyLaneSetting::nearest_lane_id(DC->mouse.y);
+        //     // double spawn_y = AllyLaneSetting::lane_y_by_id(lane_id);
+        //     // Point spawn_pos{world_x, spawn_y };
 
-            // DC->allies.emplace_back(new Ally(spawn_pos, lane_id));
-			DC->ally_sel=true;
-			DC->ally_type=0;
-        }
+        //     // DC->allies.emplace_back(new Ally(spawn_pos, lane_id));
+		// 	DC->ally_sel=true;
+		// 	DC->ally_type=0;
+        // }
 		if(DC->ally_sel&&DC->mouse.x<MAP_WIDTH){
             int lane_id=AllyLaneSetting::nearest_lane_id(DC->mouse.y);
             DC->ally_preview=lane_id;

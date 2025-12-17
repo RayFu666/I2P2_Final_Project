@@ -26,20 +26,44 @@ int AllyLaneSetting::nearest_lane_id(double y) {
 double AllyLaneSetting::lane_y_by_id(int id) {
     return lane_y_table[id];
 }
-
-Ally::Ally(const Point& p, int lane_id)
-    : lane_id(lane_id)
+//change
+Ally::Ally(const Point& p, int lane_id,Allytype type)
+    : type(type),lane_id(lane_id)
 {
     //DataCenter* DC = DataCenter::get_instance();
     ImageCenter* IC = ImageCenter::get_instance();
+    //add
+    switch(type){
+        case Allytype::BLACK_DUDE:{
+            walk_sheet = IC->get("./assets/image/ally/black_dude.png");
+            HP=20;
+            v=60;
+            atk=2;
+            attack_freq=30;
+            attack_range=30.0;
 
-    walk_sheet = IC->get("./assets/image/ally/black_dude.png");
+            frame_count=6;
+            break;
+        }
+        case Allytype::VIKING_HAMMERMAN:{
+            walk_sheet = IC->get("./assets/image/ally/viking_hammerman_test.png");
+            //"..\I2P2_Final_Project\assets\image\ally\viking_hammerman.jpg"
+            HP=60;
+            v=20;
+            atk=5;
+            attack_freq=50;
+            attack_range=50.0;
+            frame_count=10;
+            break;
+        }
+    }
+    //walk_sheet = IC->get("./assets/image/ally/black_dude.png");
 
-    HP = 30;
-    v = 60;
+    //HP = 30;
+    //v = 60;
 
     frame = 0;
-    frame_count = 6;
+    //frame_count = 6;
     frame_switch_freq = 10;
     frame_switch_counter = 0;
 
@@ -47,10 +71,10 @@ Ally::Ally(const Point& p, int lane_id)
 
     shape.reset(new Rectangle{ p.x, p.y, p.x, p.y });
 
-    atk = 3;
-    attack_freq = 30;
+    //atk = 3;
+    //attack_freq = 30;
     attack_cooldown = 0;
-    attack_range = 40.0;
+    //attack_range = 40.0;
     lane_tolerance = 25.0;
 
     target = nullptr;

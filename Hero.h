@@ -5,7 +5,7 @@
 // #include "../shapes/Point.h"
 #include <string>
 #include <map>
-
+#include <allegro5/bitmap.h>
 enum class HeroState {
     LEFT,
     RIGHT,
@@ -27,7 +27,15 @@ public:
 private:
     HeroState state = HeroState::FRONT;
     double speed = 5;
-    std::map<HeroState, std::string> gifPath;
+    ALLEGRO_BITMAP* hero_sheet=nullptr;
+
+    int frame=0;
+    int frame_count=0;
+    int frame_w=0;
+    int frame_h=0;
+
+    int anim_counter=0;
+    int anim_speed=6;
 };
 
 

@@ -11,12 +11,16 @@ enum class AllyState {
     ATTACK,
     DIE
 };
+enum class Allytype{
+    BLACK_DUDE,
+    VIKING_HAMMERMAN
+};
 
 class Monster;
 
 class Ally : public Object {
 public:
-    Ally(const Point& p, int lane_id);
+    Ally(const Point& p, int lane_id,Allytype type);
 
     void update();
     void draw();
@@ -33,7 +37,8 @@ public:
 
 private:
     AllyState state = AllyState::WALK;
-
+    //add
+    Allytype type;
     double v;
     int lane_id;
 
