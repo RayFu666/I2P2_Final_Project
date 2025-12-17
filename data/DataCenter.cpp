@@ -35,6 +35,7 @@ DataCenter::DataCenter() {
 	//add
     monster_kill=0;
     tutorial_speed=1.0;
+    enemy_base_hp=100;
 
 	memset(key_state, false, sizeof(key_state));
 	memset(prev_key_state, false, sizeof(prev_key_state));

@@ -191,7 +191,7 @@ UI::draw() {
 		panel + love_img_padding,
 		DC->window_height+love_img_padding-al_get_font_line_height(hp_font),
 		ALLEGRO_ALIGN_LEFT,
-		"HP: %d", player_HP
+		"My HP: %d", player_HP
 	);
 	// int love_width = al_get_bitmap_width(love);
 	// for(int i = 1; i <= player_HP; ++i) {
@@ -210,6 +210,16 @@ UI::draw() {
 		panel+love_img_padding,
 		love_img_padding,
 		ALLEGRO_ALIGN_LEFT, "coin: %5d", player_coin);
+
+	//add 
+	const int enemyhp = DC->enemy_base_hp;
+	//int line=al_get_font_line_height(FC->courier_new[FontSize::MEDIUM]);
+	al_draw_textf(
+		FC->courier_new[FontSize::MEDIUM],al_map_rgb(0, 0, 255),
+		panel+love_img_padding,
+		DC->window_height+love_img_padding-2*al_get_font_line_height(hp_font),
+		ALLEGRO_ALIGN_LEFT,
+		"Enemy HP: %d",enemyhp);
 	// draw ally shop items
 	for(size_t i=0;i<ally_place.size();i++) {
 		auto &[bitmap,p,price]=ally_place[i];

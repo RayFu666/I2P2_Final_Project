@@ -16,6 +16,7 @@ enum class TutorialStage{
     SELECT_ALLY,
     PLACE_ALLY,
     WAIT_KILL_ONE,
+	DESTROY_TOWER,
     FINISHED
 };
 class Game

@@ -27,7 +27,7 @@ void Hero::init() {
     //DataCenter* DC = DataCenter::get_instance();
 
     //add
-    double startx=100;
+    double startx=250;
     double starty=100;
     shape.reset(new Rectangle{
         static_cast<int>(startx),

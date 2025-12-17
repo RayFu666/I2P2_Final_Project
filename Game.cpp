@@ -27,6 +27,7 @@ constexpr char background_sound_path[] = "./assets/sound/BackgroundMusic.ogg";
 
 //add
 const int MAP_WIDTH=600;
+const int ZONE=300;
 /**
  * @brief Game entry.
  * @details The function processes all allegro events and update the event state to a generic data storage (i.e. DataCenter).
@@ -194,6 +195,7 @@ Game::game_update() {
 				DC->level->load_level(cur_level);
 				DC->hero->init();
 				DC->player->rst();
+				DC->enemy_base_hp=100;
 				
 				//add
 				if(cur_level==1){
@@ -223,7 +225,7 @@ Game::game_update() {
 			//debug
 			//debug_log("<Game> remain = %d, monsters_on_field = %zu\n",
               //DC->level->remain_monsters(), DC->monsters.size());
-			if(DC->level->remain_monsters() == 0 && DC->monsters.size() == 0) {
+			if(DC->enemy_base_hp<=0) {
 				debug_log("<Game> state: change to WIN\n");
 				//CHANGE
 				state = STATE::WIN;
@@ -255,6 +257,7 @@ Game::game_update() {
 				DC->hero->init();
 				DC->player->rst();
 				state=STATE::LEVEL;
+				DC->enemy_base_hp=100;
 			}
 			if(DC->key_state[ALLEGRO_KEY_ENTER]&&!DC->prev_key_state[ALLEGRO_KEY_ENTER]){
 				state=STATE::START;
@@ -272,6 +275,7 @@ Game::game_update() {
 				DC->hero->init();
 				DC->player->rst();
 				state=STATE::LEVEL;
+				DC->enemy_base_hp=100;
 			}
 			if(DC->key_state[ALLEGRO_KEY_ENTER]&&!DC->prev_key_state[ALLEGRO_KEY_ENTER]){
 				state=STATE::START;
@@ -306,8 +310,11 @@ Game::game_update() {
 				float cam_x=DC->camerax;
 				double world_x=DC->mouse.x+cam_x; 
 				if(world_x<0)world_x=0;
-				if (world_x>DC->game_field_length)world_x=DC->game_field_length;
-
+				if(world_x>DC->game_field_length)world_x=DC->game_field_length;
+				if(world_x<ZONE){
+					debug_log("[ALLY] Cannot place in red zone");
+            		return true;
+				}
 
 				int lane_id=DC->ally_preview;
 				//double spawn_y=AllyLaneSetting::nearest_lane_id(DC->mouse.y);
@@ -421,10 +428,12 @@ Game::update_tutorial(){
 		}
 	}else if(tutorial_stage==TutorialStage::WAIT_KILL_ONE){
 		if(DC->monster_kill>=1){
+			tutorial_stage=TutorialStage::DESTROY_TOWER;
+		}
+	}else if(tutorial_stage==TutorialStage::DESTROY_TOWER){
+		if(DC->enemy_base_hp<=10){
 			tutorial_stage=TutorialStage::FINISHED;
 		}
-	}else if(tutorial_stage==TutorialStage::FINISHED){
-		
 	}
 }
 void Game::draw_tutorial() {
@@ -444,12 +453,12 @@ void Game::draw_tutorial() {
         line2 = "use WASD to move.[Press W to continue]";
 		break;
     case TutorialStage::INTRO:
-        line1 = "THE ONLY THING TO DO...";
-        line2 = "Is to DESTROY the enemy![Left click to continue]";
+        line1 = "The only thing to do is to...";
+        line2 = "DESTROY the enemy![Left click to continue]";
         break;
     case TutorialStage::SELECT_ALLY:
         line1 = "However,we cannot do it by ourself.";
-        line2 = "Let's summon our allies!Left click to select them!";
+        line2 = "Call for the allies!Left click to select them!";
         break;
     case TutorialStage::PLACE_ALLY:
         line1 = "They're three roads you can choose.";
@@ -459,10 +468,10 @@ void Game::draw_tutorial() {
         line1 = "Killing monsters...";
         line2 = "You can get money from killing monsters.";
         break;
-	// case TutorialStage::WAIT_KILL_ONE:
-    //     line1 = "Killing monsters...";
-    //     line2 = "The GOAL is to destroy the enemy tower!";
-    //     break;
+	case TutorialStage::DESTROY_TOWER:
+        line1 = "Now it's time to destroy their base!";
+        line2 = "The GOAL is to destroy the enemy tower!";
+        break;
 	// case TutorialStage::WAIT_KILL_ONE:
     //     line1 = "Killing monsters...";
     //     line2 = "The GOAL is to destroy the enemy tower!";
@@ -534,6 +543,12 @@ Game::game_draw() {
 
 		if (state != STATE::START) {
             DC->level->draw();
+			ImageCenter *IC=ImageCenter::get_instance();
+			ALLEGRO_BITMAP* base_img=IC->get("./assets/image/tower/Arcane.png");
+    		ALLEGRO_BITMAP* enemy_base_img=IC->get("./assets/image/tower/Archer.png");
+			float camx=DC->camerax;
+			float camy=DC->cameray;
+			/////預選
 			if (DC->ally_sel && DC->ally_preview != -1) {
                 double lane_y = AllyLaneSetting::lane_y_by_id(DC->ally_preview);
                 float half_h = 20.0f;
@@ -546,6 +561,62 @@ Game::game_draw() {
                     al_map_rgba(255, 255, 255, 210)
                 );
             }
+			/////禁放
+			const float lane_half_h = 20.0f;
+			for (int lane=0;lane<AllyLaneSetting::lane_count;++lane){
+				double lane_y=AllyLaneSetting::lane_y_by_id(lane);
+
+				float left=static_cast<float>(0.0-camx);
+				float right=static_cast<float>(ZONE-camx);
+
+				al_draw_filled_rectangle(
+					left,
+					static_cast<float>(lane_y - lane_half_h),
+					right,
+					static_cast<float>(lane_y + lane_half_h),
+					al_map_rgba(255, 100, 100, 200)
+				);
+			}
+			/////
+			
+			int base_h=al_get_bitmap_width(base_img);
+			int base_w=al_get_bitmap_height(enemy_base_img);
+			int enemy_base_h=al_get_bitmap_width(base_img);
+			int enemy_base_w=al_get_bitmap_height(enemy_base_img);
+
+			float base_h_f=base_h*0.7;
+			float base_w_f=base_w*0.7;
+			float enemy_base_h_f=enemy_base_h*0.7;
+			float enemy_base_w_f=enemy_base_w*0.7;
+			const double enemy_base_x=50.0;
+    		const double base_x=DC->game_field_length-20.0; 
+
+			for(int lane=0;lane<AllyLaneSetting::lane_count;++lane){
+				double lane_y=AllyLaneSetting::lane_y_by_id(lane);
+
+				float enemy_sc_x=static_cast<float>(enemy_base_x-camx-enemy_base_w/2.0);
+				float sc_x=static_cast<float>(base_x+15.0-camx-base_w/2.0);
+				float enemy_sc_y=static_cast<float>(lane_y-15.0-camy-enemy_base_h_f/2.0);
+				float sc_y=static_cast<float>(lane_y-15.0-camy-base_h_f/2.0);
+
+				al_draw_scaled_bitmap(
+					enemy_base_img,
+					0,0,enemy_base_w,enemy_base_h,
+					enemy_sc_x,enemy_sc_y,
+					enemy_base_w_f,enemy_base_h_f,
+					0
+				);
+
+				al_draw_scaled_bitmap(
+					base_img,
+					0,0,base_w,base_h,
+					sc_x,sc_y,
+					base_w_f,base_h_f,
+					0
+				);
+			}
+
+			
 
 
 

@@ -3,7 +3,7 @@
 #include "../data/ImageCenter.h"
 #include <allegro5/bitmap_draw.h>
 #include "../monsters/Monster.h"
-
+#include "../Utils.h"
 namespace {
     constexpr double lane_y_table[AllyLaneSetting::lane_count] = {
         220.0, 300.0, 380.0
@@ -48,7 +48,7 @@ Ally::Ally(const Point& p, int lane_id)
     shape.reset(new Rectangle{ p.x, p.y, p.x, p.y });
 
     atk = 3;
-    attack_freq = 30;       // 30 frame 打一次 ≈ 0.5 秒
+    attack_freq = 30;
     attack_cooldown = 0;
     attack_range = 40.0;
     lane_tolerance = 25.0;
@@ -59,7 +59,6 @@ Ally::Ally(const Point& p, int lane_id)
 void Ally::update() {
     DataCenter* DC = DataCenter::get_instance();
 
-    // 1. 死亡判定
     if (HP <= 0 && state != AllyState::DIE) {
         state = AllyState::DIE;
         target = nullptr;
@@ -70,7 +69,6 @@ void Ally::update() {
         die_scale=1.0f;
     }
 
-    // 2. 動畫更新（目前 WALK / ATTACK 共用同一張走路圖）
     if (state == AllyState::WALK || state == AllyState::ATTACK) {
         if (frame_switch_counter > 0) {
             --frame_switch_counter;
@@ -89,16 +87,17 @@ void Ally::update() {
         double dx = v / DC->FPS;
         shape->update_center_x(cx - dx);
 
-        // 把 y 固定在 lane 上，避免飄掉
         shape->update_center_y(AllyLaneSetting::lane_y_by_id(lane_id));
 
-        // ★ 左邊界 clamp：不要讓 Ally 一直走出框外
         double new_x = shape->center_x();
-        if (new_x < 50.0) {
-            shape->update_center_x(50.0);
-        }
+        //add
+        const double base_x=10.0;
 
-        // 然後再來找怪物（這段你已經寫好了）
+        if (new_x <base_x) {
+            shape->update_center_x(base_x);
+            new_x=base_x;
+        }
+        
         Monster* best = nullptr;
         double best_dx = 1e9;
 
@@ -122,6 +121,14 @@ void Ally::update() {
             target = best;
             state = AllyState::ATTACK;
             attack_cooldown = 0;
+        }else{
+            //add
+            double distance=cx-base_x;
+            if(distance<=attack_range){
+                target=nullptr;
+                state=AllyState::ATTACK;
+                attack_cooldown=0;
+            }
         }
 
         break;
@@ -129,43 +136,56 @@ void Ally::update() {
 
 
     case AllyState::ATTACK: {
-        // 目標死掉或被移除 → 回 WALK
-        if (!target || target->is_dead()) {
-            target = nullptr;
-            state = AllyState::WALK;
+        //add
+        const double base_x=10.0;
+        cx=shape->center_x();
+        cy=shape->center_y();
+
+        // if (!target || target->is_dead()) {
+        //     target = nullptr;
+        //     state = AllyState::WALK;
+        //     break;
+        // }
+        if(target){
+            double tx = target->shape->center_x();
+            double ty = target->shape->center_y();
+
+            double dist_x = std::abs(cx - tx);
+            double dist_y = std::abs(cy - ty);
+            if(target->is_dead()||dist_y >lane_tolerance||dist_x>attack_range){
+                target=nullptr;
+            }else{
+                if(attack_cooldown>0){
+                    --attack_cooldown;
+                }else{
+                    target->take_damage(atk);
+                    HP-=1;
+                    attack_cooldown=attack_freq;
+                }
+                break;
+            }
+        }
+        double distance=cx-base_x;
+        if(distance>attack_range){
+            state=AllyState::WALK;
             break;
         }
-
-        double tx = target->shape->center_x();
-        double ty = target->shape->center_y();
-
-        double dist_x = std::abs(cx - tx);
-        double dist_y = std::abs(cy - ty);
-
-        // 仍然要求在「同一條 lane 附近」，但不用管前面後面，只要沒離太遠就繼續打
-        if (dist_y > lane_tolerance || dist_x > attack_range) {
-            target = nullptr;
-            state = AllyState::WALK;
-            break;
-        }
-
-        // 冷卻中就只播動畫不扣血
-        if (attack_cooldown > 0) {
+        if(attack_cooldown>0){
             --attack_cooldown;
-        }
-        else {
-            target->take_damage(atk);
-            // ★ 順便讓 Ally 也扣血（Monster 反擊），先硬寫一個數值，之後再改成 Monster 的攻擊力
-            HP -= 1;
+        }else{
+            DC->enemy_base_hp-=atk;
+            if(DC->enemy_base_hp<0)DC->enemy_base_hp=0;
 
-            attack_cooldown = attack_freq;
-        }
+            // debug_log("[EnemyBase] took %d damage, HP = %d\n",
+            //           atk, DC->enemy_base_hp);
 
+            attack_cooldown=attack_freq;
+        }
         break;
     }
 
 
-                          // ☠ DIE：原地不動，等外面把這隻 Ally 從 vector erase
+
     case AllyState::DIE: {
         if(die_animation_cnt>0){
             die_animation_cnt--;

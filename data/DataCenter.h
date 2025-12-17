@@ -49,6 +49,7 @@ public:
 	//add
 	int monster_kill;
 	double tutorial_speed;
+	int enemy_base_hp;
 	/**
 	 * @brief Stores the keyboard state whether a key is being pressed.
 	 * @details The states will be updated once a key is pressed, asynchronously with frame update.
