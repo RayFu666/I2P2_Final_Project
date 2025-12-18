@@ -58,7 +58,7 @@ Monster* Monster::create_monster(MonsterType type, const vector<Point>& path) {
     case MonsterType::DEMONNIJIA: {
         return new MonsterDemonNinja{ path };
     }
-    case MonsterType::VIKING:               // ★ 新增 case
+    case MonsterType::VIKING:
         return new MonsterViking{ path };
     case MonsterType::GUNSLAYER: {
         return new MonsterGunslayer{ path };
@@ -159,7 +159,6 @@ void Monster::update_walk_state() {
         dir = tmpdir;
     }
 
-    // ====== 更新 hitbox（Viking 特判，其餘照原本圖片抓）======
     double cx = shape->center_x();
     double cy = shape->center_y();
 
@@ -197,27 +196,23 @@ void Monster::update_walk_state() {
         shape.reset(new Rectangle{ cx - w / 2., cy - h / 2., cx - w / 2. + w, cy - h / 2. + h });
     }
 
-    // 重新抓一次（hitbox reset 後 center 可能一樣，但保險）
     cx = shape->center_x();
     cy = shape->center_y();
 
-    // ====== 距離塔判斷（所有怪都要能打塔）======
     Rectangle* rect = dynamic_cast<Rectangle*>(shape.get());
     double base_left = (DC->right_base ? DC->right_base->left() : (double)DC->game_field_length);
     double dist_to_base = rect ? (base_left - rect->x2) : 1e9;
 
-    // ★ Gunslayer：不在 Monster 裡處理打 ally（遠程射擊交給 MonsterGunslayer）
     if (type == MonsterType::GUNSLAYER) {
         if (dist_to_base <= attack_range) {
             if (dist_to_base < 0) dist_to_base = 0;
             target_ally = nullptr;
-            state = MonsterState::ATTACK;   // 只用來打塔
+            state = MonsterState::ATTACK;
             attack_cooldown = 0;
         }
-        return; // ★ 很重要：直接結束，避免下面去找 ally
+        return;
     }
 
-    // ====== 非 Gunslayer：照舊找「同 lane」最近 ally，進入 ATTACK 近戰 ======
     Ally* best = nullptr;
     double best_dx = 1e9;
 
@@ -227,8 +222,8 @@ void Monster::update_walk_state() {
         double ax = a->shape->center_x();
         double ay = a->shape->center_y();
 
-        if (std::abs(ay - cy) > lane_tolerance) continue; // 同 lane
-        if (ax <= cx) continue;                           // 只打前方
+        if (std::abs(ay - cy) > lane_tolerance) continue;
+        if (ax <= cx) continue;
 
         double dx_front = ax - cx;
         if (dx_front <= attack_range && dx_front < best_dx) {

@@ -9,7 +9,7 @@
 #include "../Hero.h"
 #include "../ally/Ally.h"
 #include "../BaseTower.h"
-
+#include "../monsters/GunslayerBullet.h"
 // fixed settings
 namespace DataSetting {
 	constexpr double FPS = 60;

@@ -758,7 +758,7 @@ void Game::game_draw() {
 				ALLEGRO_ALIGN_CENTRE, "[2]easy"
 			);
 			al_draw_text(
-				FC->caviar_dreams[FontSize::MEDIUM], al_map_rgb(255, 255, 255),
+				FC->caviar_dreams[FontSize::MEDIUM], al_map_rgb(255, 0, 0),
 				DC->window_width / 2.0, 330,
 				ALLEGRO_ALIGN_CENTRE, "[3]hard"
 			);

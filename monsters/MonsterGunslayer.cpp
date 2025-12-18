@@ -10,21 +10,17 @@
 static constexpr int CELL_W = 75;
 static constexpr int CELL_H = 75;
 
-// 把「第 idx 格」換算成 (sx, sy)
 static void uv_run(int idx, int& sx, int& sy) {
-    // run: 0..7 (上排0..5，下排0..1)
     if (idx < 6) { sx = idx * CELL_W; sy = 0; }
     else { sx = (idx - 6) * CELL_W; sy = CELL_H; }
 }
 
 static void uv_shoot(int idx, int& sx, int& sy) {
-    // shoot: 0..6 (上排0..5，下排0)
     if (idx < 6) { sx = idx * CELL_W; sy = 0; }
     else { sx = 0; sy = CELL_H; }
 }
 
 static void uv_die(int idx, int& sx, int& sy) {
-    // die: 0..14 (上排0..5, 中排6..11, 下排12..14)
     if (idx < 6) { sx = idx * CELL_W; sy = 0; }
     else if (idx < 12) { sx = (idx - 6) * CELL_W; sy = CELL_H; }
     else { sx = (idx - 12) * CELL_W; sy = 2 * CELL_H; }
@@ -33,7 +29,6 @@ static void uv_die(int idx, int& sx, int& sy) {
 void MonsterGunslayer::update() {
     DataCenter* DC = DataCenter::get_instance();
 
-    // ---- 死亡：只進一次 ----
     if (!dying && HP <= 0) {
         dying = true;
         shooting = false;
@@ -42,7 +37,6 @@ void MonsterGunslayer::update() {
         return;
     }
 
-    // ---- 死亡動畫播放 ----
     if (dying) {
         anim_counter++;
         if (anim_counter >= anim_freq) {
@@ -55,7 +49,6 @@ void MonsterGunslayer::update() {
         return;
     }
 
-    // ---- 找跨三線 ally（最近者）----
     Ally* best = nullptr;
     double best_dist = 1e18;
 
@@ -80,18 +73,15 @@ void MonsterGunslayer::update() {
 
     shooting = (best != nullptr);
 
-    // ---- 移動/打塔：交給 Monster ----
-    // 若 shooting：暫時 v=0 讓 Monster 還能做「打塔近戰」判斷，但不移動
+
     int saved_v = v;
     if (shooting) v = 0;
     Monster::update();
     v = saved_v;
 
-    // 更新位置（Monster::update 可能有微調）
     cx = shape->center_x();
     cy = shape->center_y();
 
-    // ---- 射子彈 ----
     if (shooting) {
         if (shoot_cooldown > 0) shoot_cooldown--;
         else {
@@ -110,11 +100,9 @@ void MonsterGunslayer::update() {
         }
     }
     else {
-        // 不想重置也行，你現在這樣 OK
         shoot_cooldown = 0;
     }
 
-    // ---- 動畫 frame 推進 ----
     anim_counter++;
     if (anim_counter >= anim_freq) {
         anim_counter = 0;
