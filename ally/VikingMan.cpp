@@ -19,15 +19,13 @@ VikingMan::VikingMan(const Point& p, int lane_id)
     v = 60;
     atk = 3;
 
-    // 這隻的 sprite sheet：2 rows × 5 cols
     frame = 0;
-    frame_count = 5;          // 走路只用 0~4
+    frame_count = 5;
     frame_switch_freq = 10;
     frame_switch_counter = 0;
 
     state = AllyState::WALK;
 
-    // hitbox：先用「中心點」初始化，之後 update 會保持在 lane 上
     shape.reset(new Rectangle{ p.x, p.y, p.x, p.y });
 
     // 攻擊參數沿用 Ally 的
@@ -75,17 +73,14 @@ void VikingMan::update() {
 
     switch (state) {
     case AllyState::WALK: {
-        // 往左走（跟你原本 Ally 一樣）
         double dx = v / DC->FPS;
         shape->update_center_x(cx - dx);
 
-        // 固定在 lane
         shape->update_center_y(AllyLaneSetting::lane_y_by_id(lane_id));
 
-        // 左邊界 clamp
-        if (shape->center_x() < 50.0) shape->update_center_x(50.0);
+        const double base_x = 100.0;
+        if (shape->center_x() < base_x) shape->update_center_x(base_x);
 
-        // 找前方（左邊）的怪來打
         Monster* best = nullptr;
         double best_dx = 1e9;
 
@@ -96,7 +91,7 @@ void VikingMan::update() {
             double my = m->shape->center_y();
 
             if (std::abs(my - cy) > lane_tolerance) continue;
-            if (mx >= cx) continue; // 怪在 Ally 右邊就不打（你原本邏輯）
+            if (mx >= cx) continue;
 
             double dx_front = cx - mx;
             if (dx_front <= attack_range && dx_front < best_dx) {
@@ -110,15 +105,62 @@ void VikingMan::update() {
             state = AllyState::ATTACK;
             attack_cooldown = 0;
         }
+        else {
+            const double base_x = 100.0;
+            double distance = cx - base_x;
+            if (distance <= attack_range) {
+                target = nullptr;
+                state = AllyState::ATTACK;
+                attack_cooldown = 0;
+            }
+        }
         break;
+
     }
 
     case AllyState::ATTACK: {
-        if (!target || target->is_dead()) {
-            target = nullptr;
+        const double base_x = 100.0;
+
+        if (target) {
+            bool still_exist = false;
+            for (Monster* m : DC->monsters) {
+                if (m == target) { still_exist = true; break; }
+            }
+            if (!still_exist || target->is_dead()) target = nullptr;
+        }
+
+        if (target) {
+            double tx = target->shape->center_x();
+            double ty = target->shape->center_y();
+            double dist_x = std::abs(cx - tx);
+            double dist_y = std::abs(cy - ty);
+
+            if (dist_y > lane_tolerance || dist_x > attack_range) {
+                target = nullptr;
+            }
+            else {
+                if (attack_cooldown > 0) --attack_cooldown;
+                else {
+                    target->take_damage(atk);
+                    attack_cooldown = attack_freq;
+                }
+                break;
+            }
+        }
+
+        double distance = cx - base_x;
+        if (distance > attack_range) {
             state = AllyState::WALK;
             break;
         }
+
+        if (attack_cooldown > 0) --attack_cooldown;
+        else {
+            DC->enemy_base_hp -= atk;
+            if (DC->enemy_base_hp < 0) DC->enemy_base_hp = 0;
+            attack_cooldown = attack_freq;
+        }
+        break;
 
         double tx = target->shape->center_x();
         double ty = target->shape->center_y();
