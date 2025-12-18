@@ -170,220 +170,192 @@ bool Game::game_update() {
     static ALLEGRO_SAMPLE_INSTANCE* background = nullptr;
 
     switch (state) {
-		case STATE::START: {
-		static bool is_played = false;
-		static ALLEGRO_SAMPLE_INSTANCE *instance = nullptr;
+    case STATE::START: {
+        static bool is_played = false;
+        static ALLEGRO_SAMPLE_INSTANCE* instance = nullptr;
 
-		if (!is_played) {
-			instance = SC->play(game_start_sound_path, ALLEGRO_PLAYMODE_ONCE);
-			al_set_sample_instance_gain(instance, 0.1f);
-			is_played = true;
-		}
-
-		int selected = -1;
-		if (DC->key_state[ALLEGRO_KEY_1] && !DC->prev_key_state[ALLEGRO_KEY_1]) selected = 1;
-		if (DC->key_state[ALLEGRO_KEY_2] && !DC->prev_key_state[ALLEGRO_KEY_2]) selected = 2;
-		if (DC->key_state[ALLEGRO_KEY_3] && !DC->prev_key_state[ALLEGRO_KEY_3]) selected = 3;
-
-		if (selected != -1) {
-			cur_level = selected;
-			DC->clear_game();
-			DC->level->init();
-			DC->level->load_level(cur_level);
-
-			ImageCenter* IC = ImageCenter::get_instance();
-			ALLEGRO_BITMAP* baseBmp = IC->get("./assets/image/tower/Arcane.png");
-			if (baseBmp) {
-				int bw = al_get_bitmap_width(baseBmp);
-				int bh = al_get_bitmap_height(baseBmp);
-
-				double y_top = (DC->window_height - bh) / 2.0 - 40.0;
-
-				DC->left_base  = new BaseTower(Point{0.0, y_top}, baseBmp);
-
-				double right_x = static_cast<double>(DC->game_field_length - bw);
-				DC->right_base = new BaseTower(Point{right_x, y_top}, baseBmp);
-			}
-
-			DC->hero->init();
-			DC->player->rst();
-			DC->enemy_base_hp = 100;
-
-			if (cur_level == 1)
-				tutorial_stage = TutorialStage::MOVE;
-			else
-				tutorial_stage = TutorialStage::NONE;
-
-			debug_log("<Game> state: change to LEVEL\n");
-			state = STATE::LEVEL;
-		}
-		break;
-	}
-
-	case STATE::LEVEL: {
-		static bool BGM_played = false;
-		if (!BGM_played) {
-			background = SC->play(background_sound_path, ALLEGRO_PLAYMODE_LOOP);
-			al_set_sample_instance_gain(background, 0.1f);
-			BGM_played = true;
-		}
-
-		if (DC->key_state[ALLEGRO_KEY_P] && !DC->prev_key_state[ALLEGRO_KEY_P]) {
-			SC->toggle_playing(background);
-			debug_log("<Game> state: change to PAUSE\n");
-			state = STATE::PAUSE;
-		}
-
-		if (DC->enemy_base_hp <= 0 ||
-			(DC->level->remain_monsters() == 0 && DC->monsters.empty())) {
-			debug_log("<Game> state: change to WIN\n");
-			state = STATE::WIN;
-		}
-
-		if (DC->player->HP <= 0) {
-			debug_log("<Game> state: change to LOSE\n");
-			state = STATE::LOSE;
-		}
-
-		if (cur_level == 1) {
-			update_tutorial();
-		}
-		break;
-	}
-
-	case STATE::PAUSE: {
-		if (DC->key_state[ALLEGRO_KEY_P] && !DC->prev_key_state[ALLEGRO_KEY_P]) {
-			SC->toggle_playing(background);
-			debug_log("<Game> state: change to LEVEL\n");
-			state = STATE::LEVEL;
-		}
-		break;
-	}
-
-	case STATE::WIN: {
-		if (DC->key_state[ALLEGRO_KEY_R] && !DC->prev_key_state[ALLEGRO_KEY_R]) {
-			DC->clear_game();
-			DC->level->init();
-			DC->level->load_level(cur_level);
-			DC->hero->init();
-			DC->player->rst();
-			DC->enemy_base_hp = 100;
-			state = STATE::LEVEL;
-		}
-		if (DC->key_state[ALLEGRO_KEY_ENTER] && !DC->prev_key_state[ALLEGRO_KEY_ENTER]) {
-			state = STATE::START;
-		}
-		if (DC->key_state[ALLEGRO_KEY_ESCAPE] && !DC->prev_key_state[ALLEGRO_KEY_ESCAPE]) {
-			state = STATE::END;
-		}
-		break;
-	}
-
-	case STATE::LOSE: {
-		if (DC->key_state[ALLEGRO_KEY_R] && !DC->prev_key_state[ALLEGRO_KEY_R]) {
-			DC->clear_game();
-			DC->level->init();
-			DC->level->load_level(cur_level);
-			DC->hero->init();
-			DC->player->rst();
-			DC->enemy_base_hp = 100;
-			state = STATE::LEVEL;
-		}
-		if (DC->key_state[ALLEGRO_KEY_ENTER] && !DC->prev_key_state[ALLEGRO_KEY_ENTER]) {
-			state = STATE::START;
-		}
-		if (DC->key_state[ALLEGRO_KEY_ESCAPE] && !DC->prev_key_state[ALLEGRO_KEY_ESCAPE]) {
-			state = STATE::END;
-		}
-		break;
-	}
-
-	case STATE::END: {
-		return false;
-	}
-
-	if(state==STATE::LEVEL) {
-		DC->player->update();
-		SC->update();
-        ui->update();
-
-        DC->hero->update();
-		const int ALLY_COST=50;
-		//change
-		if (state == STATE::
-			LEVEL&&
-            DC->mouse_state[1]&&
-			!DC->prev_mouse_state[1]&&
-            DC->mouse.x <MAP_WIDTH&&
-			DC->ally_sel&&
-			DC->ally_preview!=-1	
-		) {
-			if(DC->player->coin>=ALLY_COST){
-				float cam_x=DC->camerax;
-				double world_x=DC->mouse.x+cam_x; 
-				if(world_x<0)world_x=0;
-				if(world_x>DC->game_field_length)world_x=DC->game_field_length;
-				if(world_x<ZONE){
-					debug_log("[ALLY] Cannot place in red zone");
-            		return true;
-				}
-
-				int lane_id=DC->ally_preview;
-				//double spawn_y=AllyLaneSetting::nearest_lane_id(DC->mouse.y);
-				double spawn_y = AllyLaneSetting::lane_y_by_id(lane_id);
-				Point spawn_pos{world_x, spawn_y };
-
-				//add
-				Allytype type=static_cast<Allytype>(DC->ally_type);
-				DC->allies.emplace_back(new Ally(spawn_pos, lane_id,type));
-
-				DC->player->coin-=ALLY_COST;
-				DC->ally_preview=-1;
-				DC->ally_sel=false;
-				DC->ally_type=-1;
-			}else{
-				//debug
-				debug_log("Not enough coin to summon Ally. coin = %d\n", DC->player->coin);
-			}
-			
+        if (!is_played) {
+            instance = SC->play(game_start_sound_path, ALLEGRO_PLAYMODE_ONCE);
+            al_set_sample_instance_gain(instance, 0.1f);
+            is_played = true;
         }
-		//add
-        // if (state == STATE::LEVEL &&
-        //     DC->mouse_state[1] && !DC->prev_mouse_state[1] &&
-        //     DC->mouse.x>=MAP_WIDTH) {
-			
-		// 	// float cam_x=DC->camerax;
-    	// 	// double world_x=DC->mouse.x+cam_x; 
-		// 	// if(world_x<0)world_x=0;
-    	// 	// if (world_x>DC->game_field_length)world_x=DC->game_field_length;
 
-                int lane_id = DC->ally_preview;
-                double spawn_y = AllyLaneSetting::lane_y_by_id(lane_id);
-                Point spawn_pos{ world_x, spawn_y };
+        int selected = -1;
+        if (DC->key_state[ALLEGRO_KEY_1] && !DC->prev_key_state[ALLEGRO_KEY_1]) selected = 1;
+        if (DC->key_state[ALLEGRO_KEY_2] && !DC->prev_key_state[ALLEGRO_KEY_2]) selected = 2;
+        if (DC->key_state[ALLEGRO_KEY_3] && !DC->prev_key_state[ALLEGRO_KEY_3]) selected = 3;
 
-                debug_log("[Game] Place ally_type = %d at lane=%d\n", (int)DC->ally_type, lane_id);
-                if (DC->ally_type == AllyType::BASIC) {
-                    DC->allies.emplace_back(new BasicAlly(spawn_pos, lane_id));
-                }
-                else if (DC->ally_type == AllyType::VIKINGMAN) {
-                    DC->allies.emplace_back(new VikingMan(spawn_pos, lane_id));
+        if (selected != -1) {
+            cur_level = selected;
+            DC->clear_game();
+            DC->level->init();
+            DC->level->load_level(cur_level);
+
+            ImageCenter* IC = ImageCenter::get_instance();
+            ALLEGRO_BITMAP* baseBmp = IC->get("./assets/image/tower/Arcane.png");
+            if (baseBmp) {
+                int bw = al_get_bitmap_width(baseBmp);
+                int bh = al_get_bitmap_height(baseBmp);
+
+                double y_top = (DC->window_height - bh) / 2.0 - 40.0;
+
+                DC->left_base = new BaseTower(Point{ 0.0, y_top }, baseBmp);
+
+                double right_x = static_cast<double>(DC->game_field_length - bw);
+                DC->right_base = new BaseTower(Point{ right_x, y_top }, baseBmp);
+            }
+
+            DC->hero->init();
+            DC->player->rst();
+            DC->enemy_base_hp = 100;
+
+            if (cur_level == 1)
+                tutorial_stage = TutorialStage::MOVE;
+            else
+                tutorial_stage = TutorialStage::NONE;
+
+            debug_log("<Game> state: change to LEVEL\n");
+            state = STATE::LEVEL;
+        }
+        break;
+    }
+
+    case STATE::LEVEL: {
+        static bool BGM_played = false;
+        if (!BGM_played) {
+            background = SC->play(background_sound_path, ALLEGRO_PLAYMODE_LOOP);
+            al_set_sample_instance_gain(background, 0.1f);
+            BGM_played = true;
+        }
+
+        if (DC->key_state[ALLEGRO_KEY_P] && !DC->prev_key_state[ALLEGRO_KEY_P]) {
+            SC->toggle_playing(background);
+            debug_log("<Game> state: change to PAUSE\n");
+            state = STATE::PAUSE;
+        }
+
+        if (DC->enemy_base_hp <= 0 ||
+            (DC->level->remain_monsters() == 0 && DC->monsters.empty())) {
+            debug_log("<Game> state: change to WIN\n");
+            state = STATE::WIN;
+        }
+
+        if (DC->player->HP <= 0) {
+            debug_log("<Game> state: change to LOSE\n");
+            state = STATE::LOSE;
+        }
+
+        if (cur_level == 1) {
+            update_tutorial();
+        }
+        break;
+    }
+
+    case STATE::PAUSE: {
+        if (DC->key_state[ALLEGRO_KEY_P] && !DC->prev_key_state[ALLEGRO_KEY_P]) {
+            SC->toggle_playing(background);
+            debug_log("<Game> state: change to LEVEL\n");
+            state = STATE::LEVEL;
+        }
+        break;
+    }
+
+    case STATE::WIN: {
+        if (DC->key_state[ALLEGRO_KEY_R] && !DC->prev_key_state[ALLEGRO_KEY_R]) {
+            DC->clear_game();
+            DC->level->init();
+            DC->level->load_level(cur_level);
+            DC->hero->init();
+            DC->player->rst();
+            DC->enemy_base_hp = 100;
+            state = STATE::LEVEL;
+        }
+        if (DC->key_state[ALLEGRO_KEY_ENTER] && !DC->prev_key_state[ALLEGRO_KEY_ENTER]) {
+            state = STATE::START;
+        }
+        if (DC->key_state[ALLEGRO_KEY_ESCAPE] && !DC->prev_key_state[ALLEGRO_KEY_ESCAPE]) {
+            state = STATE::END;
+        }
+        break;
+    }
+
+    case STATE::LOSE: {
+        if (DC->key_state[ALLEGRO_KEY_R] && !DC->prev_key_state[ALLEGRO_KEY_R]) {
+            DC->clear_game();
+            DC->level->init();
+            DC->level->load_level(cur_level);
+            DC->hero->init();
+            DC->player->rst();
+            DC->enemy_base_hp = 100;
+            state = STATE::LEVEL;
+        }
+        if (DC->key_state[ALLEGRO_KEY_ENTER] && !DC->prev_key_state[ALLEGRO_KEY_ENTER]) {
+            state = STATE::START;
+        }
+        if (DC->key_state[ALLEGRO_KEY_ESCAPE] && !DC->prev_key_state[ALLEGRO_KEY_ESCAPE]) {
+            state = STATE::END;
+        }
+        break;
+    }
+
+    case STATE::END: {
+        return false;
+    }
+    }
+
+    if (state == STATE::LEVEL) {
+        DC->player->update();
+        SC->update();
+        ui->update();
+        DC->hero->update();
+
+        const int ALLY_COST = 50;
+
+        // ===== Ally placement (left click on map) =====
+        if (DC->mouse_state[1] &&
+            !DC->prev_mouse_state[1] &&
+            DC->mouse.x < MAP_WIDTH &&
+            DC->ally_sel &&
+            DC->ally_preview != -1
+            ) {
+            if (DC->player->coin >= ALLY_COST) {
+                float cam_x = DC->camerax;
+                double world_x = DC->mouse.x + cam_x;
+
+                if (world_x < 0) world_x = 0;
+                if (world_x > DC->game_field_length) world_x = DC->game_field_length;
+
+                if (world_x < ZONE) {
+                    debug_log("[ALLY] Cannot place in red zone\n");
                 }
                 else {
-                    
+                    int lane_id = DC->ally_preview;
+                    double spawn_y = AllyLaneSetting::lane_y_by_id(lane_id);
+                    Point spawn_pos{ world_x, spawn_y };
+
+                    debug_log("[Game] Place ally_type = %d at lane=%d\n", (int)DC->ally_type, lane_id);
+
+                    if (DC->ally_type == AllyType::BASIC) {
+                        DC->allies.emplace_back(new BasicAlly(spawn_pos, lane_id));
+                    }
+                    else if (DC->ally_type == AllyType::VIKINGMAN) {
+                        DC->allies.emplace_back(new VikingMan(spawn_pos, lane_id));
+                    }
+
+                    DC->player->coin -= ALLY_COST;
+                    DC->ally_preview = -1;
+                    DC->ally_sel = false;
+                    DC->ally_type = AllyType::NONE;
+
+                    debug_log("[Game] Spawn done.\n");
                 }
-
-                debug_log("[Game] Spawn done.\n");
-
-                DC->player->coin -= ALLY_COST;
-                DC->ally_preview = -1;
-                DC->ally_sel = false;
-                DC->ally_type = AllyType::NONE;
             }
             else {
                 debug_log("Not enough coin to summon Ally. coin = %d\n", DC->player->coin);
             }
         }
 
+        // ===== Ally preview lane =====
         if (DC->ally_sel && DC->mouse.x < MAP_WIDTH) {
             int lane_id = AllyLaneSetting::nearest_lane_id(DC->mouse.y);
             DC->ally_preview = lane_id;
@@ -392,10 +364,12 @@ bool Game::game_update() {
             DC->ally_preview = -1;
         }
 
+        // ===== Update allies =====
         for (Ally* a : DC->allies) {
             a->update();
         }
 
+        // ===== Remove dead allies =====
         auto& allies = DC->allies;
         for (auto it = allies.begin(); it != allies.end(); ) {
             Ally* a = *it;
@@ -408,11 +382,11 @@ bool Game::game_update() {
             }
         }
 
-        if (state != STATE::START) {
-            DC->level->update();
-            OC->update();
-        }
+        // ===== Update level / operations =====
+        DC->level->update();
+        OC->update();
     }
+
 
     double hero_x = DC->hero->center_x();
     float camx = static_cast<float>(hero_x - MAP_WIDTH / 2.0f);

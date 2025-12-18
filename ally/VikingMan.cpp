@@ -7,7 +7,7 @@
 #include <allegro5/allegro_primitives.h>
 
 VikingMan::VikingMan(const Point& p, int lane_id)
-    : Ally(p, lane_id)
+    : Ally(p, lane_id, Allytype::VIKING_HAMMERMAN)
 {
     ImageCenter* IC = ImageCenter::get_instance();
 
