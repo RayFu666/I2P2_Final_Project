@@ -192,10 +192,10 @@ bool Game::game_update() {
 			DC->level->load_level(cur_level);
 
 			ImageCenter* IC = ImageCenter::get_instance();
-			ALLEGRO_BITMAP* baseBmp = IC->get("./assets/image/tower/Arcane.png");
+			ALLEGRO_BITMAP* baseBmp = IC->get("./assets/image/tower1.png");
 			if (baseBmp) {
-				int bw = al_get_bitmap_width(baseBmp);
-				int bh = al_get_bitmap_height(baseBmp);
+				int bw =al_get_bitmap_width(baseBmp);
+				int bh =al_get_bitmap_height(baseBmp);
 
 				double y_top = (DC->window_height - bh) / 2.0 - 40.0;
 
@@ -313,7 +313,7 @@ bool Game::game_update() {
 
 		const int ALLY_COST = 50;
 
-		// 處理 ally 放置
+		if(DC->timer>0)DC->timer--;
 		if (DC->mouse_state[1] &&
 			!DC->prev_mouse_state[1] &&
 			DC->mouse.x < MAP_WIDTH &&
@@ -433,6 +433,43 @@ Game::update_tutorial(){
 		}
 	}
 }
+void Game::draw_pop(){
+    DataCenter* DC = DataCenter::get_instance();
+    if (DC->timer <= 0) return;
+
+    FontCenter* FC = FontCenter::get_instance();
+
+    float box_w=540.0f;
+    float box_h=80.0f;
+    float box_x=30.0f;
+    float box_y=DC->window_height - box_h - 40.0f;
+
+    al_draw_filled_rectangle(
+        box_x, box_y,
+        box_x + box_w, box_y + box_h,
+        al_map_rgba(0, 0, 0, 180)
+    );
+    al_draw_rectangle(
+        box_x, box_y,
+        box_x + box_w, box_y + box_h,
+        al_map_rgb(255, 255, 255),
+        2
+    );
+
+    al_draw_text(
+        FC->caviar_dreams[FontSize::MEDIUM], al_map_rgb(255, 255, 255),
+        box_x + 20, box_y + 15,
+        ALLEGRO_ALIGN_LEFT, DC->line1.c_str()
+    );
+    if (!DC->line2.empty()) {
+        al_draw_text(
+            FC->caviar_dreams[FontSize::MEDIUM], al_map_rgb(230, 230, 230),
+            box_x + 20, box_y + 45,
+            ALLEGRO_ALIGN_LEFT, DC->line2.c_str()
+        );
+    }
+}
+
 void Game::draw_tutorial() {
     if (cur_level != 1) return;
     if (tutorial_stage == TutorialStage::NONE ||
@@ -634,6 +671,9 @@ void Game::game_draw() {
 		//add
 		if(state==STATE::LEVEL&&cur_level==1){
 			draw_tutorial();
+		}
+		if(state==STATE::LEVEL){
+			draw_pop();
 		}
     }
 	switch (state) {

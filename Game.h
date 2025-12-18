@@ -60,6 +60,7 @@ private:
 	TutorialStage tutorial_stage=TutorialStage::NONE;
     void update_tutorial();
     void draw_tutorial();
+	void draw_pop();
 };
 
 #endif

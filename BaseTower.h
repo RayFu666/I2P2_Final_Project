@@ -10,7 +10,7 @@ class Rectangle;
 
 class BaseTower {
 public:
-    BaseTower(const Point& topLeft, ALLEGRO_BITMAP* bmp, int hp = 2000);
+    BaseTower(const Point& topLeft, ALLEGRO_BITMAP* bmp, int hp = 100);
 
     void update() {}              // 先留空
     void draw() const;
