@@ -11,7 +11,10 @@ enum class AllyState {
     ATTACK,
     DIE
 };
-
+enum class Allytype {
+    BLACK_DUDE,
+    VIKING_HAMMERMAN
+};
 
 
 

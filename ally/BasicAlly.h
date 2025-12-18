@@ -1,5 +1,5 @@
-#ifndef BASICALY_H_INCLUDED
-#define BASICALY_H_INCLUDED
+#ifndef BASICALLY_H_INCLUDED
+#define BASICALLY_H_INCLUDED
 
 #include "Ally.h"
 #include "../data/ImageCenter.h" 

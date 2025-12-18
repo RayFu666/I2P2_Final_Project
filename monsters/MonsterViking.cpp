@@ -43,7 +43,7 @@ void MonsterViking::draw() {
     }
 
     ImageCenter* IC = ImageCenter::get_instance();
-    ALLEGRO_BITMAP* sheet = IC->get("./assets/image/monster/Viking/MonsterViking.png");
+    ALLEGRO_BITMAP* sheet = IC->get("./assets/image/monster/Viking/MonsterViking_new.png");
     if (!sheet) return;
 
     const int frame_w = 50;

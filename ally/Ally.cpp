@@ -28,7 +28,7 @@ double AllyLaneSetting::lane_y_by_id(int id) {
     return lane_y_table[id];
 }
 //change
-Ally::Ally(const Point& p, int lane_id)
+Ally::Ally(const Point& p, int lane_id, Allytype type)
     :lane_id(lane_id)
 {
     //DataCenter* DC = DataCenter::get_instance();
