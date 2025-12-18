@@ -318,7 +318,7 @@ void Monster::update_attack_state() {
         return;
     }
 
-    double base_left = DC->right_base->left();
+    double base_left = DC->right_base->left()+40.0;
     Rectangle* rect = dynamic_cast<Rectangle*>(shape.get());
     double dist_base = rect ? (base_left - rect->x2) : 1e9;
 
@@ -336,7 +336,6 @@ void Monster::update_attack_state() {
         attack_cooldown = attack_freq;
 
         if (DC->right_base->is_dead()) {
-            // 你原本用 player->HP 判 LOSE，最快方式：直接把 HP 打到 0
             DC->player->HP = 0;
         }
     }

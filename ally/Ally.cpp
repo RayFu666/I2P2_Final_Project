@@ -109,7 +109,7 @@ void Ally::update() {
 
         double new_x = shape->center_x();
         //add
-        const double base_x=10.0;
+        const double base_x=100.0;
 
         if (new_x <base_x) {
             shape->update_center_x(base_x);
@@ -155,7 +155,7 @@ void Ally::update() {
 
     case AllyState::ATTACK: {
         //add
-        const double base_x=10.0;
+        const double base_x=100.0;
         cx=shape->center_x();
         cy=shape->center_y();
 

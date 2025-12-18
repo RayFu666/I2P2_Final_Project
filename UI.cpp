@@ -41,7 +41,6 @@ UI::init() {
         ally_place.emplace_back(bitmap, Point{ tl_x, tl_y }, ally_price, AllyType::BASIC);
     }
 
-    // VIKINGMAN (你自己換成 VikingMan 用的 icon；暫時也可先用同一張測試)
     {
         ALLEGRO_BITMAP* bitmap = IC->get("./assets/image/ally/VikingManPress.png");
         ally_place.emplace_back(bitmap, Point{ tl_x, tl_y + 80 }, ally_price, AllyType::VIKINGMAN);

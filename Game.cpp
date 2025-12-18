@@ -38,7 +38,7 @@ constexpr char win_icon_img_path[] = "./assets/image/panda_win.png";
 constexpr char lose_icon_img_path[] = "./assets/image/panda_lose.png";
 //add
 const int MAP_WIDTH=600;
-const int ZONE=300;
+const int ZONE=350;
 /**
  * @brief Game entry.
  * @details The function processes all allegro events and update the event state to a generic data storage (i.e. DataCenter).
@@ -354,7 +354,6 @@ bool Game::game_update() {
 					} else if (DC->ally_type == AllyType::VIKINGMAN) {
 						DC->allies.emplace_back(new VikingMan(spawn_pos, lane_id));
 					} else {
-						// AllyType::NONE 或未知：不生
 					}
 
 					debug_log("[Game] Spawn done.\n");
@@ -377,7 +376,7 @@ bool Game::game_update() {
 			DC->ally_preview = -1;
 		}
 
-		// 更新 allies
+
 		for (Ally* a : DC->allies) {
 			a->update();
 		}
@@ -386,7 +385,6 @@ bool Game::game_update() {
             Ally* a = *it;
             if (a->can_remove()) {
 
-                // ★ 先讓所有 enemy_bullets 不要再指向這個 Ally
                 for (auto* b : DC->enemy_bullets) {
                     if (b && b->get_target() == a) {
                         b->clear_target();
@@ -421,9 +419,6 @@ bool Game::game_update() {
                 ++it;
             }
         }
-
-
-		// 關卡與其他系統更新
 		
 	}
 
@@ -469,6 +464,11 @@ Game::update_tutorial(){
 		}
 	}else if(tutorial_stage==TutorialStage::WAIT_KILL_ONE){
 		if(DC->monster_kill>=1){
+			tutorial_stage=TutorialStage::ABILITY;
+		}
+	}
+	else if(tutorial_stage==TutorialStage::ABILITY){
+		if(DC->key_state[ALLEGRO_KEY_Q]&&!DC->prev_key_state[ALLEGRO_KEY_Q]){
 			tutorial_stage=TutorialStage::DESTROY_TOWER;
 		}
 	}else if(tutorial_stage==TutorialStage::DESTROY_TOWER){
@@ -545,6 +545,10 @@ void Game::draw_tutorial() {
     case TutorialStage::WAIT_KILL_ONE:
         line1 = "Killing monsters...";
         line2 = "You can get money from killing monsters.";
+        break;
+	case TutorialStage::ABILITY:
+        line1 = "Actually,you have a superpower...";
+        line2 = "Press Q to boost your allies!";
         break;
 	case TutorialStage::DESTROY_TOWER:
         line1 = "Now it's time to destroy their base!";
@@ -624,8 +628,6 @@ void Game::game_draw() {
 		);
 		
 		// user interface
-
-        // 只讓「地圖世界」畫在左半邊
         al_set_clipping_rectangle(0, 0, MAP_WIDTH, DC->window_height);
 
 		if (state != STATE::START) {
@@ -741,17 +743,17 @@ void Game::game_draw() {
 				al_map_rgba(0, 0, 0, 120)
 			);
 			al_draw_text(
-				FC->caviar_dreams[FontSize::LARGE], al_map_rgb(255, 255, 255),
+				FC->courier_new[FontSize::LARGE], al_map_rgb(255, 255, 255),
 				DC->window_width / 2.0, 180,
 				ALLEGRO_ALIGN_CENTRE, "Select Level"
 			);
 			al_draw_text(
-				FC->caviar_dreams[FontSize::MEDIUM], al_map_rgb(255, 255, 255),
+				FC->caviar_dreams[FontSize::MEDIUM], al_map_rgb(0, 255, 255),
 				DC->window_width / 2.0, 250,
 				ALLEGRO_ALIGN_CENTRE, "[1]tutorial"
 			);
 			al_draw_text(
-				FC->caviar_dreams[FontSize::MEDIUM], al_map_rgb(255, 255, 255),
+				FC->caviar_dreams[FontSize::MEDIUM], al_map_rgb(0, 255, 0),
 				DC->window_width / 2.0, 290,
 				ALLEGRO_ALIGN_CENTRE, "[2]easy"
 			);
@@ -761,7 +763,7 @@ void Game::game_draw() {
 				ALLEGRO_ALIGN_CENTRE, "[3]hard"
 			);
 			// al_draw_text(
-			// 	FC->caviar_dreams[FontSize::MEDIUM], al_map_rgb(255, 255, 255),
+			// 	FC->caviar_dreams[FontSize::MEDIUM], al_map_rgb(255, 0, 0),
 			// 	DC->window_width / 2.0, 340,
 			// 	ALLEGRO_ALIGN_CENTRE, "[4]Level 4"
 			// );
