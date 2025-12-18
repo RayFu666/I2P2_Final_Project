@@ -174,8 +174,8 @@ void Monster::update_walk_state() {
     cy = shape->center_y();
 
     if (type == MonsterType::VIKING) {
-        const int w = 50;
-        const int h = 65;
+        const int w = 70;
+        const int h = 70;
         shape.reset(new Rectangle{
             (cx - w / 2.), (cy - h / 2.),
             (cx - w / 2. + w), (cy - h / 2. + h)
