@@ -37,7 +37,7 @@ UI::init() {
 
     // BASIC
     {
-        ALLEGRO_BITMAP* bitmap = IC->get("./assets/image/ally/black_dude.png");
+        ALLEGRO_BITMAP* bitmap = IC->get("./assets/image/ally/black_dude_icon.png");
         ally_place.emplace_back(bitmap, Point{ tl_x, tl_y }, ally_price, AllyType::BASIC);
     }
 

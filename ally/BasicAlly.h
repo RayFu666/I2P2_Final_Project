@@ -1,12 +1,12 @@
-#ifndef BASICALY_H_INCLUDED
-#define BASICALY_H_INCLUDED
+#ifndef BASICALLY_H_INCLUDED
+#define BASICALLY_H_INCLUDED
 
 #include "Ally.h"
 #include "../data/ImageCenter.h" 
 
 class BasicAlly : public Ally {
 public:
-    BasicAlly(const Point& p, int lane_id) : Ally(p, lane_id) {
+    BasicAlly(const Point& p, int lane_id) : Ally(p, lane_id, Allytype::BLACK_DUDE) {
         ImageCenter* IC = ImageCenter::get_instance();
         walk_sheet = IC->get("./assets/image/ally/black_dude.png");
 

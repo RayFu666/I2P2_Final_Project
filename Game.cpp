@@ -170,9 +170,9 @@ bool Game::game_update() {
     static ALLEGRO_SAMPLE_INSTANCE* background = nullptr;
 
     switch (state) {
-		case STATE::START: {
-		static bool is_played = false;
-		static ALLEGRO_SAMPLE_INSTANCE *instance = nullptr;
+    case STATE::START: {
+        static bool is_played = false;
+        static ALLEGRO_SAMPLE_INSTANCE* instance = nullptr;
 
 		if (!is_played) {
 			instance = SC->play(game_start_sound_path, ALLEGRO_PLAYMODE_ONCE);
@@ -383,6 +383,7 @@ bool Game::game_update() {
 		DC->level->update();
 		OC->update();
 	}
+
 
 
     double hero_x = DC->hero->center_x();

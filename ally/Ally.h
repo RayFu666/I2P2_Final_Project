@@ -11,7 +11,10 @@ enum class AllyState {
     ATTACK,
     DIE
 };
-
+enum class Allytype {
+    BLACK_DUDE,
+    VIKING_HAMMERMAN
+};
 
 
 
@@ -19,7 +22,7 @@ class Monster;
 
 class Ally : public Object {
 public:
-    Ally(const Point& p, int lane_id);
+    Ally(const Point& p, int lane_id, Allytype type);
     bool is_dead() const { return HP <= 0 || state == AllyState::DIE; }
     virtual ~Ally() = default;
 
