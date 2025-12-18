@@ -12,6 +12,7 @@
 #include "ally/Ally.h"
 #include "ally/BasicAlly.h"
 #include "ally/VikingMan.h"
+#include "monsters/GunslayerBullet.h"
 
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_font.h>
@@ -368,20 +369,50 @@ bool Game::game_update() {
 		for (Ally* a : DC->allies) {
 			a->update();
 		}
-		auto& allies = DC->allies;
-		for (auto it = allies.begin(); it != allies.end(); ) {
-			Ally* a = *it;
-			if (a->can_remove()) {
-				delete a;
-				it = allies.erase(it);
-			} else {
-				++it;
-			}
-		}
+        auto& allies = DC->allies;
+        for (auto it = allies.begin(); it != allies.end(); ) {
+            Ally* a = *it;
+            if (a->can_remove()) {
+
+                // ★ 先讓所有 enemy_bullets 不要再指向這個 Ally
+                for (auto* b : DC->enemy_bullets) {
+                    if (b && b->get_target() == a) {
+                        b->clear_target();
+                    }
+                }
+
+                delete a;
+                it = allies.erase(it);
+            }
+            else {
+                ++it;
+            }
+        }
+
+
+        DC->level->update();
+        OC->update();
+
+        // ===== Update enemy bullets =====
+        for (auto* b : DC->enemy_bullets) {
+            b->update();
+        }
+
+        // ===== Remove enemy bullets =====
+        auto& eb = DC->enemy_bullets;
+        for (auto it = eb.begin(); it != eb.end(); ) {
+            if ((*it)->can_remove()) {
+                delete* it;
+                it = eb.erase(it);
+            }
+            else {
+                ++it;
+            }
+        }
+
 
 		// 關卡與其他系統更新
-		DC->level->update();
-		OC->update();
+		
 	}
 
 
@@ -652,14 +683,16 @@ void Game::game_draw() {
 			if (DC->left_base)  DC->left_base->draw();
 			if (DC->right_base) DC->right_base->draw();
 			
-
-
-
             DC->hero->draw();
 
             for (Ally* a : DC->allies) {
                 a->draw();
             }
+
+            for (auto* b : DC->enemy_bullets) {
+                b->draw();
+            }
+
 
             OC->draw();
         }

@@ -36,6 +36,8 @@ public:
 
 public:
     int HP;
+    double center_x() const { return shape->center_x(); }
+    double center_y() const { return shape->center_y(); }
 
 protected:
     AllyState state = AllyState::WALK;
