@@ -28,36 +28,22 @@ double AllyLaneSetting::lane_y_by_id(int id) {
     return lane_y_table[id];
 }
 //change
-Ally::Ally(const Point& p, int lane_id,Allytype type)
-    : type(type),lane_id(lane_id)
+Ally::Ally(const Point& p, int lane_id)
+    :lane_id(lane_id)
 {
     //DataCenter* DC = DataCenter::get_instance();
     ImageCenter* IC = ImageCenter::get_instance();
     //add
-    switch(type){
-        case Allytype::BLACK_DUDE:{
-            walk_sheet = IC->get("./assets/image/ally/black_dude.png");
-            HP=20;
-            v=60;
-            atk=2;
-            attack_freq=30;
-            attack_range=30.0;
+    
+    walk_sheet = IC->get("./assets/image/ally/black_dude.png");
+    HP=20;
+    v=60;
+    atk=2;
+    attack_freq=30;
+    attack_range=30.0;
 
-            frame_count=6;
-            break;
-        }
-        case Allytype::VIKING_HAMMERMAN:{
-            walk_sheet = IC->get("./assets/image/ally/viking_hammerman_test.png");
-            //"..\I2P2_Final_Project\assets\image\ally\viking_hammerman.jpg"
-            HP=60;
-            v=20;
-            atk=5;
-            attack_freq=50;
-            attack_range=50.0;
-            frame_count=10;
-            break;
-        }
-    }
+    frame_count=6;
+
     //walk_sheet = IC->get("./assets/image/ally/black_dude.png");
 
     //HP = 30;
@@ -178,6 +164,18 @@ void Ally::update() {
         //     state = AllyState::WALK;
         //     break;
         // }
+        if (target) {
+            bool still_exist = false;
+            for (Monster* m : DC->monsters) {
+                if (m == target) {
+                    still_exist = true;
+                    break;
+                }
+            }
+            if (!still_exist || target->is_dead()) {
+                target = nullptr;
+            }
+        }
         if(target){
             double tx = target->shape->center_x();
             double ty = target->shape->center_y();
