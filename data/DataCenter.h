@@ -15,6 +15,13 @@ class Bullet;
 
 class Hero;
 class Ally;
+class BaseTower;
+
+enum class AllyType {
+    BASIC,
+    VIKINGMAN,
+    NONE
+};
 
 /**
  * @brief Stores generic global data and relatively small data structures.
@@ -44,7 +51,7 @@ public:
 	float cameray;
 	//add
 	bool ally_sel=false;
-	int ally_type=-1;
+    AllyType ally_type = AllyType::NONE;
 	int ally_preview=-1;
 	//add
 	int monster_kill;
@@ -80,8 +87,10 @@ public:
 	 * @see Game::game_update()
 	 */
 	bool prev_mouse_state[ALLEGRO_MOUSE_MAX_EXTRA_AXES];
-
-	//add
+    
+    BaseTower* left_base = nullptr;
+    BaseTower* right_base = nullptr;
+    //add
 	void clear_game();
 public:
 	/**

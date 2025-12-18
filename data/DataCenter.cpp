@@ -8,6 +8,7 @@
 
 #include "../Hero.h"
 #include "../ally/Ally.h"
+#include "../BaseTower.h"
 
 // fixed settings
 namespace DataSetting {
@@ -30,7 +31,6 @@ DataCenter::DataCenter() {
 
 	//add
 	ally_sel=false;
-	ally_type=-1;
 	ally_preview=-1;
 	//add
     monster_kill=0;
@@ -86,5 +86,7 @@ DataCenter::clear_game(){
     }
     allies.clear();
     monster_kill=0;
+    if (left_base) { delete left_base; left_base = nullptr; }
+    if (right_base) { delete right_base; right_base = nullptr; }
 
 }

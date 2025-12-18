@@ -3,6 +3,7 @@
 #include "MonsterCaveMan.h"
 #include "MonsterWolfKnight.h"
 #include "MonsterDemonNinja.h"
+#include "MonsterViking.h" 
 #include "../data/DataCenter.h"
 #include "../data/ImageCenter.h"
 #include "../Level.h"
@@ -12,7 +13,7 @@
 #include <allegro5/allegro_primitives.h>
 #include "../ally/Ally.h"
 
-//add
+#include "../BaseTower.h"
 #include "../Player.h"
 using namespace std;
 
@@ -25,7 +26,8 @@ namespace MonsterSetting {
         "./assets/image/monster/Wolf",
         "./assets/image/monster/CaveMan",
         "./assets/image/monster/WolfKnight",
-        "./assets/image/monster/DemonNinja"
+        "./assets/image/monster/DemonNinja",
+        "./assets/image/monster/Viking"
     };
     static constexpr char dir_path_prefix[][10] = {
         "UP", "DOWN", "LEFT", "RIGHT"
@@ -53,6 +55,8 @@ Monster* Monster::create_monster(MonsterType type, const vector<Point>& path) {
     case MonsterType::DEMONNIJIA: {
         return new MonsterDemonNinja{ path };
     }
+    case MonsterType::VIKING:               // ★ 新增 case
+        return new MonsterViking{ path };
     case MonsterType::MONSTERTYPE_MAX: {}
     }
     GAME_ASSERT(false, "monster type error.");
@@ -112,8 +116,12 @@ bool Monster::is_dead() const {
 void Monster::update_walk_state() {
     DataCenter* DC = DataCenter::get_instance();
     ImageCenter* IC = ImageCenter::get_instance();
-    //change
-    double movement = v*DC->tutorial_speed / DC->FPS;
+
+    Rectangle* rect = dynamic_cast<Rectangle*>(shape.get());
+    if (!rect) return; // 理論上不會發生，保險
+    //double x2 = rect->x2;
+
+    double movement = v / DC->FPS;
 
     while (!path.empty() && movement > 0) {
         const Point& grid = this->path.front();
@@ -146,28 +154,64 @@ void Monster::update_walk_state() {
         dir = tmpdir;
     }
 
+    if (DC->right_base) {
+        if (rect) {
+            double base_left = DC->right_base->left();
+            if (rect->x2 > base_left) {
+                double dx = base_left - rect->x2; // <=0
+                rect->update_center_x(rect->center_x() + dx);
+            }
+        }
+    }
+
+
+
     double cx = shape->center_x();
     double cy = shape->center_y();
 
 
-    char buffer[50];
-    sprintf(
-        buffer, "%s/%s_%d.png",
-        MonsterSetting::monster_imgs_root_path[static_cast<int>(type)],
-        MonsterSetting::dir_path_prefix[static_cast<int>(dir)],
-        bitmap_img_ids[static_cast<int>(dir)][bitmap_img_id]
-    );
-    ALLEGRO_BITMAP* bitmap = IC->get(buffer);
+    cx = shape->center_x();
+    cy = shape->center_y();
 
-    const int h = al_get_bitmap_width(bitmap) * 0.8;
-    const int w = al_get_bitmap_height(bitmap) * 0.8;
-    shape.reset(new Rectangle{
-        (cx - w / 2.), (cy - h / 2.),
-        (cx - w / 2. + w), (cy - h / 2. + h)
-        });
+    if (type == MonsterType::VIKING) {
+        const int w = 50;
+        const int h = 65;
+        shape.reset(new Rectangle{
+            (cx - w / 2.), (cy - h / 2.),
+            (cx - w / 2. + w), (cy - h / 2. + h)
+            });
+    }
+    else {
+        char buffer[50];
+        sprintf(
+            buffer, "%s/%s_%d.png",
+            MonsterSetting::monster_imgs_root_path[static_cast<int>(type)],
+            MonsterSetting::dir_path_prefix[static_cast<int>(dir)],
+            bitmap_img_ids[static_cast<int>(dir)][bitmap_img_id]
+        );
+        ALLEGRO_BITMAP* bitmap = IC->get(buffer);
+
+        const int h = al_get_bitmap_width(bitmap) * 0.8;
+        const int w = al_get_bitmap_height(bitmap) * 0.8;
+        shape.reset(new Rectangle{
+            (cx - w / 2.), (cy - h / 2.),
+            (cx - w / 2. + w), (cy - h / 2. + h)
+            });
+    }
+
+    if (DC->right_base) {
+        if (rect) {
+            double base_left = DC->right_base->left();
+            if (rect->x2 > base_left) {
+                double dx = base_left - rect->x2;
+                rect->update_center_x(rect->center_x() + dx);
+            }
+        }
+    }
 
     cx = shape->center_x();
     cy = shape->center_y();
+
 
     Ally* best = nullptr;
     double best_dx = 1e9;
@@ -190,18 +234,22 @@ void Monster::update_walk_state() {
     }
 
     //add
-    DataCenter *DC2=DataCenter::get_instance();
-    double base_x=static_cast<double>(DC2->game_field_length);
-    double distance=base_x-cx;
+    //DataCenter *DC2=DataCenter::get_instance();
+    double base_left = (DC->right_base ? DC->right_base->left() : (double)DC->game_field_length);
+    double dist_to_base = rect ? (base_left - rect->x2) : 1e9;
+
+
     if (best) {
         target_ally = best;
         state = MonsterState::ATTACK;
         attack_cooldown = 0;
-    }else if(distance<=attack_range){
-        target_ally = best;
+    }
+    else if (dist_to_base <= attack_range) {
+        target_ally = nullptr;    // 明確表示打塔
         state = MonsterState::ATTACK;
         attack_cooldown = 0;
     }
+
 }
 
 
@@ -238,22 +286,35 @@ void Monster::update_attack_state() {
             target_ally->HP -= atk;
             attack_cooldown = attack_freq;
         }
-    }else{
-        //add
-        Player* player=DC->player;
-        double base_x=static_cast<double>(DC->game_field_length);
-        double dist_base=base_x-cx;
-
-        if(dist_base>attack_range){
-            state=MonsterState::WALK;
+    }
+    else {
+        // ===== attack your base tower instead of player =====
+        if (!DC->right_base || DC->right_base->is_dead()) {
+            // 沒塔就退回走路（或直接 return）
+            state = MonsterState::WALK;
             return;
         }
 
-        if(attack_cooldown>0){
+        double base_left = DC->right_base->left();
+        Rectangle* rect = dynamic_cast<Rectangle*>(shape.get());
+        double dist_base = rect ? (base_left - rect->x2) : 1e9;
+
+        if (dist_base > attack_range) {
+            state = MonsterState::WALK;
+            return;
+        }
+
+        if (attack_cooldown > 0) {
             attack_cooldown--;
-        }else{
-            player->HP-=atk;
-            attack_cooldown=attack_freq;
+        }
+        else {
+            DC->right_base->take_damage(atk);
+            attack_cooldown = attack_freq;
+
+            if (DC->right_base->is_dead()) {
+                // 你原本用 player->HP 判 LOSE，最快方式：直接把 HP 打到 0
+                DC->player->HP = 0;
+            }
         }
     }
     
@@ -288,8 +349,6 @@ void Monster::draw() {
 		0
 	);
 }
-
-
 
  void Monster::update_die_state() {
 

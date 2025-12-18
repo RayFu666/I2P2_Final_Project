@@ -95,6 +95,7 @@ void OperationCenter::_update_monster_player() {
 	}
 }
 
+
 void OperationCenter::_update_monster_hero() {
     DataCenter* DC = DataCenter::get_instance();
     std::vector<Monster*>& monsters = DC->monsters;

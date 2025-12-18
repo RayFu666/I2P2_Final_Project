@@ -31,14 +31,22 @@ UI::init() {
 	//int max_height = 0;
 	// arrange tower shop
 
-	//add
-	ALLEGRO_BITMAP *bitmap1 = IC->get("./assets/image/ally/black_dude.png");
-	ALLEGRO_BITMAP *bitmap2 = IC->get("./assets/image/ally/viking_hammerman_test.png");
-	int ally1_price=50;
-	int ally2_price=100;
-	ally_place.clear();
-	ally_place.emplace_back(bitmap1,Point{tl_x,tl_y},ally1_price);
-	ally_place.emplace_back(bitmap2,Point{tl_x+60/*spacing*/,tl_y},ally2_price);
+    ally_place.clear();
+
+    int ally_price = 50;
+
+    // BASIC
+    {
+        ALLEGRO_BITMAP* bitmap = IC->get("./assets/image/ally/black_dude.png");
+        ally_place.emplace_back(bitmap, Point{ tl_x, tl_y }, ally_price, AllyType::BASIC);
+    }
+
+    // VIKINGMAN (你自己換成 VikingMan 用的 icon；暫時也可先用同一張測試)
+    {
+        ALLEGRO_BITMAP* bitmap = IC->get("./assets/image/ally/VikingManPress.png");
+        ally_place.emplace_back(bitmap, Point{ tl_x, tl_y + 80 }, ally_price, AllyType::VIKINGMAN);
+    }
+
 	//for(size_t i = 0; i < (size_t)(TowerType::TOWERTYPE_MAX); ++i) {
 		//change
 		
@@ -71,7 +79,7 @@ UI::update() {
 		case STATE::HALT: {
 			on_item=-1;
 			for(size_t i = 0; i < ally_place.size(); ++i) {
-				auto &[bitmap, p, price] = ally_place[i];
+                auto& [bitmap, p, price, type] = ally_place[i];
 				//int w = al_get_bitmap_width(bitmap);
 				//int h = al_get_bitmap_height(bitmap);
 				// hover on a shop tower item
@@ -85,7 +93,7 @@ UI::update() {
 			break;
 		}
 		 case STATE::HOVER: {
-			auto &[bitmap, p, price] = ally_place[on_item];
+             auto& [bitmap, p, price, type] = ally_place[on_item];
 			//int w = al_get_bitmap_width(bitmap);
 			//int h = al_get_bitmap_height(bitmap);
 			if(!mouse.overlap(Rectangle{p.x, p.y, p.x+48, p.y+48})) {
@@ -104,8 +112,10 @@ UI::update() {
 				}else{
 
 					DC->ally_sel=true;
-					DC->ally_type=on_item;
-				}
+                    DC->ally_type = type;
+
+                    debug_log("[UI] Select ally_type = %d\n", (int)DC->ally_type);
+                }
 				debug_log("<UI> state: change to HALT\n");
 				state = STATE::HALT;
 			}
@@ -225,28 +235,37 @@ UI::draw() {
 		ALLEGRO_ALIGN_LEFT,
 		"Enemy HP: %d",enemyhp);
 	// draw ally shop items
-	for(size_t i=0;i<ally_place.size();i++) {
-		auto &[bitmap,p,price]=ally_place[i];
-		//int w = al_get_bitmap_width(bitmap);
-		//int h = al_get_bitmap_height(bitmap);
-		al_draw_scaled_bitmap(bitmap,0,0,64,64,p.x,p.y,48,48,0);
-		al_draw_rectangle(
-			p.x - 1, p.y - 1,
-			p.x + 48 + 1, p.y + 48 + 1,
-			al_map_rgb(0, 0, 0), 1);
-		al_draw_textf(
-			FC->courier_new[FontSize::MEDIUM], al_map_rgb(0, 0, 0),
-			p.x + 48 / 2, p.y + 48,
-			ALLEGRO_ALIGN_CENTRE, "%d", price);
-		//add外框
-		if (DC->ally_sel&&(int)i==DC->ally_type){
+    // draw ally shop items
+    for (size_t i = 0; i < ally_place.size(); ++i) {
+        auto& [bitmap, p, price, type] = ally_place[i];
+
+        // icon
+        al_draw_scaled_bitmap(bitmap, 0, 0,
+            al_get_bitmap_width(bitmap), al_get_bitmap_height(bitmap),
+            p.x, p.y, 48, 48, 0);
+
+        // border
         al_draw_rectangle(
-            p.x-3,p.y-3,
-            p.x+48+3,p.y+48+3,
-            al_map_rgb(255,255,0),2
-		);
-    	}
-	}
+            p.x - 1, p.y - 1,
+            p.x + 48 + 1, p.y + 48 + 1,
+            al_map_rgb(0, 0, 0), 1);
+
+        // price
+        al_draw_textf(
+            FC->courier_new[FontSize::MEDIUM], al_map_rgb(0, 0, 0),
+            p.x + 48 / 2, p.y + 48,
+            ALLEGRO_ALIGN_CENTRE, "%d", price);
+
+        // selected highlight
+        if (DC->ally_sel && type == DC->ally_type) {
+            al_draw_rectangle(
+                p.x - 3, p.y - 3,
+                p.x + 48 + 3, p.y + 48 + 3,
+                al_map_rgb(255, 255, 0), 2
+            );
+        }
+    }
+
 
 	switch(state) {
 		static Tower *selected_tower = nullptr;
@@ -258,7 +277,7 @@ UI::draw() {
 			}
 			break;
 		} case STATE::HOVER: {
-			auto &[bitmap, p, price] = ally_place[on_item];
+            auto& [bitmap, p, price, type] = ally_place[on_item];
 			//int w = al_get_bitmap_width(bitmap);
 			//int h = al_get_bitmap_height(bitmap);
 			// Create a semitransparent mask covered on the hovered tower.

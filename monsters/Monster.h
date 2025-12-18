@@ -11,7 +11,7 @@ enum class Dir;
 
 // fixed settings
 enum class MonsterType {
-    WOLF, CAVEMAN, WOLFKNIGHT, DEMONNIJIA, MONSTERTYPE_MAX
+    WOLF, CAVEMAN, WOLFKNIGHT, DEMONNIJIA, VIKING, MONSTERTYPE_MAX
 };
 
 enum class MonsterState {
@@ -32,16 +32,20 @@ public:
     static Monster* create_monster(MonsterType type, const std::vector<Point>& path);
 public:
     Monster(const std::vector<Point>& path, MonsterType type);
-    void update();
-    void draw();
+    virtual ~Monster() = default;
+    virtual void update();
+    virtual void draw();
     const int& get_money() const { return money; }
     int HP;
     const std::queue<Point>& get_path() const { return path; }
     bool is_dead() const;
     void take_damage(int dmg);
 
+    virtual bool can_remove() const { return HP <= 0; }
+
     //add
-    int atk =2;
+    int atk = 2;
+    bool rewarded = false;
 protected:
     /**
      * @var HP
@@ -81,6 +85,8 @@ protected:
     int bitmap_switch_counter;
     int bitmap_switch_freq;
     int bitmap_img_id;
+    
+
 private:
     MonsterState state = MonsterState::WALK;
 

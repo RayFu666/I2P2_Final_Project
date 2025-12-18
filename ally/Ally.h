@@ -16,26 +16,29 @@ enum class Allytype{
     VIKING_HAMMERMAN
 };
 
+
+
+
 class Monster;
 
 class Ally : public Object {
 public:
-    Ally(const Point& p, int lane_id,Allytype type);
-
-    void update();
-    void draw();
-
+    Ally(const Point& p, int lane_id);
     bool is_dead() const { return HP <= 0 || state == AllyState::DIE; }
-    //add
-    bool can_remove() const{
-        return(state==AllyState::DIE&&die_animation_cnt<=0);
+    virtual ~Ally() = default;
+
+    virtual void update();
+    virtual void draw();
+
+    virtual bool can_remove() const {
+        return (state == AllyState::DIE && die_animation_cnt <= 0);
     }
     int lane() const { return lane_id; }
 
 public:
     int HP;
 
-private:
+protected:
     AllyState state = AllyState::WALK;
     //add
     Allytype type;
@@ -56,7 +59,7 @@ private:
     double lane_tolerance = 20;
 
     //add
-    int die_animation_total=30;
+    int die_animation_total=180;
     int die_animation_cnt=0;
     float die_alpha=1.0f;
     float die_scale=1.0f;
