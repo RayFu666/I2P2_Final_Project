@@ -19,7 +19,7 @@ public:
 
         bitmap_img_ids.clear();
         for (int d = 0; d < 4; ++d) {
-            bitmap_img_ids.emplace_back(std::vector<int>{0, 1, 2, 3, 4}); // 先假設 5 幀
+            bitmap_img_ids.emplace_back(std::vector<int>{0, 1, 2, 3, 4});
         }
     }
 
@@ -27,27 +27,26 @@ public:
     void draw() override;
     bool can_remove() const override { return die_done; }
 
-    // ★ Gunslayer 射程（可調）
-    double shoot_range = 350.0;
+
+    double shoot_range = 250.0;
 
 private:
-    int shoot_freq = 30;          // 每幾 frame 射一次（可調）
+    int shoot_freq = 30;
     int shoot_cooldown = 0;
 
-    double bullet_speed = 250.0;  // 子彈速度
-    double bullet_fly_dist = 800.0;
+    double bullet_speed = 200.0;
+    double bullet_fly_dist = 500.0;
 
-    // 動畫控制
     bool shooting = false;
     bool dying = false;
     bool die_done = false;
 
     int anim_counter = 0;
-    int anim_freq = 6;          // 每幾 frame 換一格（可調）
+    int anim_freq = 6;
 
-    int run_frame = 0;          // 0..7
-    int shoot_frame = 0;        // 0..6
-    int die_frame = 0;          // 0..14
+    int run_frame = 0;
+    int shoot_frame = 0;
+    int die_frame = 0;
 };
 
 #endif

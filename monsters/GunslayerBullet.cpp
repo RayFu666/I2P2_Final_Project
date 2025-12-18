@@ -15,14 +15,12 @@ GunslayerBullet::GunslayerBullet(const Point& p, Ally* target,
     ImageCenter* IC = ImageCenter::get_instance();
     bitmap = IC->get(img_path);
 
-    // hit circle 半徑先用圖片大小估（跟你 tower bullet 類似）
     double r = 10;
     if (bitmap) {
         r = std::min(al_get_bitmap_width(bitmap), al_get_bitmap_height(bitmap)) * 0.4;
     }
     shape.reset(new Circle{ p.x, p.y, r });
 
-    // 速度朝 target 當下位置射出去
     if (target) {
         Point t{ target->shape->center_x(), target->shape->center_y() };
         double d = Point::dist(p, t);
@@ -53,20 +51,21 @@ void GunslayerBullet::update() {
         fly_dist = 0;
     }
 
-    // 命中判斷：target 可能被清掉了
     if (!target) return;
-    if (target->can_remove() || target->is_dead()) { target = nullptr; return; }
+    if (target->can_remove() || target->is_dead()) {
+        target = nullptr;
+        removed=true;
+        return;
+    }
 
-    // circle vs rect：簡化版（用中心距離判斷）
     double bx = shape->center_x();
     double by = shape->center_y();
     double tx = target->shape->center_x();
     double ty = target->shape->center_y();
     double dist2 = (bx - tx) * (bx - tx) + (by - ty) * (by - ty);
 
-    // 命中半徑自己抓：先用 25
     if (dist2 <= 25.0 * 25.0) {
-        target->HP -= dmg;   // 直接扣 HP（跟你 ally/monster 的做法一致）
+        target->HP -= dmg;
         removed = true;
     }
 }
