@@ -85,10 +85,9 @@ protected:
     int bitmap_switch_counter;
     int bitmap_switch_freq;
     int bitmap_img_id;
-    
-
-private:
     MonsterState state = MonsterState::WALK;
+
+private:   
 
     Ally* target_ally = nullptr;
     int attack_cooldown = 0;

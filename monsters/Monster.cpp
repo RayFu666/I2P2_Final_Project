@@ -172,9 +172,16 @@ void Monster::update_walk_state() {
             });
     }
     else if (type == MonsterType::GUNSLAYER) {
-        // ★ Gunslayer 每格 75x75（你 MonsterGunslayer.cpp 用的 CELL_W/H）
         const int w = 75, h = 75;
         shape.reset(new Rectangle{ cx - w / 2., cy - h / 2., cx - w / 2. + w, cy - h / 2. + h });
+    }
+    else if (type == MonsterType::CAVEMAN || type == MonsterType::WOLF) {
+        const int w = 64;
+        const int h = 64;
+        shape.reset(new Rectangle{
+            cx - w / 2., cy - h / 2.,
+            cx - w / 2. + w, cy - h / 2. + h
+            });
     }
     else {
         char buffer[50];
