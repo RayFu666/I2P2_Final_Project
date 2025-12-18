@@ -47,6 +47,10 @@ private:
 	ALLEGRO_EVENT event;
 	ALLEGRO_BITMAP *game_icon;
 	ALLEGRO_BITMAP *background;
+
+	ALLEGRO_BITMAP* start_background;
+	ALLEGRO_BITMAP* win_background;
+	ALLEGRO_BITMAP* lose_background;
 private:
 	ALLEGRO_DISPLAY *display;
 	ALLEGRO_TIMER *timer;

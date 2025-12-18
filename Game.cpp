@@ -24,10 +24,14 @@
 
 // fixed settings
 constexpr char game_icon_img_path[] = "./assets/image/game_icon.png";
-constexpr char game_start_sound_path[] = "./assets/sound/growl.wav";
-constexpr char background_img_path[] = "./assets/image/StartBackground.jpg";
-constexpr char background_sound_path[] = "./assets/sound/BackgroundMusic.ogg";
+constexpr char game_start_sound_path[] = "./assets/sound/fart.mp3";
+constexpr char background_img_path[] = "./assets/image/level bg.jpg";
+constexpr char background_sound_path[] = "./assets/sound/Coconut Song.mp3";
 
+//add
+constexpr char win_background_img_path[] = "./assets/image/winnable.png";
+constexpr char lose_background_img_path[] = "./assets/image/wutiaowu.png";
+constexpr char start_background_img_path[] = "./assets/image/start bg.png";
 //add
 const int MAP_WIDTH=600;
 const int ZONE=300;
@@ -152,6 +156,9 @@ void Game::game_init() {
 
     // game start
     background = IC->get(background_img_path);
+	start_background = IC->get(start_background_img_path);
+	win_background = IC->get(win_background_img_path);
+	lose_background = IC->get(lose_background_img_path);
     debug_log("Game state: change to START\n");
     state = STATE::START;
     al_start_timer(timer);
@@ -176,7 +183,7 @@ bool Game::game_update() {
 
 		if (!is_played) {
 			instance = SC->play(game_start_sound_path, ALLEGRO_PLAYMODE_ONCE);
-			al_set_sample_instance_gain(instance, 0.1f);
+			al_set_sample_instance_gain(instance, 0.05f);
 			is_played = true;
 		}
 
@@ -224,7 +231,7 @@ bool Game::game_update() {
 		static bool BGM_played = false;
 		if (!BGM_played) {
 			background = SC->play(background_sound_path, ALLEGRO_PLAYMODE_LOOP);
-			al_set_sample_instance_gain(background, 0.1f);
+			al_set_sample_instance_gain(background, 0.003f);
 			BGM_played = true;
 		}
 
@@ -549,6 +556,16 @@ void Game::draw_tutorial() {
 /**
  * @brief Draw the whole game and objects.
  */
+//add
+static void draw_fullscreen(ALLEGRO_BITMAP* bmp, int w,int h){
+    if (!bmp) return;
+    al_draw_scaled_bitmap(
+        bmp,
+        0, 0, al_get_bitmap_width(bmp), al_get_bitmap_height(bmp),
+        0, 0, w, h,
+        0
+    );
+}
 void Game::game_draw() {
     DataCenter* DC = DataCenter::get_instance();
     OperationCenter* OC = OperationCenter::get_instance();
@@ -679,28 +696,30 @@ void Game::game_draw() {
     }
 	switch (state) {
 		case STATE::START: {
+			//add
+			draw_fullscreen(start_background,DC->window_width,DC->window_height);
 			al_draw_filled_rectangle(
 				0, 0, DC->window_width, DC->window_height,
 				al_map_rgba(0, 0, 0, 120)
 			);
 			al_draw_text(
 				FC->caviar_dreams[FontSize::LARGE], al_map_rgb(255, 255, 255),
-				DC->window_width / 2.0, 150,
+				DC->window_width / 2.0, 180,
 				ALLEGRO_ALIGN_CENTRE, "Select Level"
 			);
 			al_draw_text(
 				FC->caviar_dreams[FontSize::MEDIUM], al_map_rgb(255, 255, 255),
-				DC->window_width / 2.0, 220,
+				DC->window_width / 2.0, 250,
 				ALLEGRO_ALIGN_CENTRE, "[1]tutorial"
 			);
 			al_draw_text(
 				FC->caviar_dreams[FontSize::MEDIUM], al_map_rgb(255, 255, 255),
-				DC->window_width / 2.0, 260,
+				DC->window_width / 2.0, 290,
 				ALLEGRO_ALIGN_CENTRE, "[2]easy"
 			);
 			al_draw_text(
 				FC->caviar_dreams[FontSize::MEDIUM], al_map_rgb(255, 255, 255),
-				DC->window_width / 2.0, 300,
+				DC->window_width / 2.0, 330,
 				ALLEGRO_ALIGN_CENTRE, "[3]hard"
 			);
 			// al_draw_text(
@@ -728,6 +747,7 @@ void Game::game_draw() {
 		}
 		//add
 		case STATE::WIN:{
+			draw_fullscreen(win_background,DC->window_width,DC->window_height);
 			al_draw_filled_rectangle(
 				0,0,DC->window_width,DC->window_height,
 				al_map_rgba(0,0,0,150)
@@ -755,6 +775,7 @@ void Game::game_draw() {
 			break;
 		}
 		case STATE::LOSE:{
+			draw_fullscreen(lose_background,DC->window_width,DC->window_height);
 			al_draw_filled_rectangle(
 				0,0,DC->window_width,DC->window_height,
 				al_map_rgba(0,0,0,150)
