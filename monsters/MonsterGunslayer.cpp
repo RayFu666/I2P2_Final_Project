@@ -42,7 +42,7 @@ void MonsterGunslayer::update() {
         if (anim_counter >= anim_freq) {
             anim_counter = 0;
             die_frame++;
-            if (die_frame >= 15) { // 0..14
+            if (die_frame >= 15) {
                 die_done = true;
             }
         }

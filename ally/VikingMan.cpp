@@ -11,9 +11,7 @@ VikingMan::VikingMan(const Point& p, int lane_id)
 {
     ImageCenter* IC = ImageCenter::get_instance();
 
-    // 你的精靈圖路徑（自己確認檔名）
     walk_sheet = IC->get("./assets/image/ally/VikingMan_new.png");
-    // 如果你放在 monster/Viking 也行，但你說要移到 ally，就建議搬資源路徑也一起整理
 
     HP = 30;
     v = 60;
@@ -28,7 +26,6 @@ VikingMan::VikingMan(const Point& p, int lane_id)
 
     shape.reset(new Rectangle{ p.x, p.y, p.x, p.y });
 
-    // 攻擊參數沿用 Ally 的
     attack_freq = 30;
     attack_cooldown = 0;
     attack_range = 40.0;
@@ -43,25 +40,22 @@ VikingMan::VikingMan(const Point& p, int lane_id)
 void VikingMan::update() {
     DataCenter* DC = DataCenter::get_instance();
 
-    // ---- 死亡流程：播一次下排 ----
     if (!dying && HP <= 0) {
         dying = true;
         state = AllyState::DIE;
         target = nullptr;
         die_cnt = 0;
-        frame = 0; // 死亡動畫從第0格開始
+        frame = 0;
         return;
     }
 
     if (dying) {
-        // 死亡動畫：5格，播一次
         int per = std::max(1, die_total / 5);
         frame = std::min(4, die_cnt / per);
         die_cnt++;
         return;
     }
 
-    // ---- 活著：走路 / 攻擊 動畫（只用上排 0~4）----
     if (frame_switch_counter > 0) --frame_switch_counter;
     else {
         frame = (frame + 1) % 5;
@@ -194,15 +188,12 @@ bool VikingMan::can_remove() const {
 void VikingMan::draw() {
     if (!walk_sheet) return;
 
-    // 你說目前 252*130，右邊2px不要沒差
-    // 那就先「以 50×65」當格子（剛好 5×2）
     const int frame_w = 50;
     const int frame_h = 65;
     const int cols = 5;
 
-    int col = frame % cols;           // 0..4
-    int row = dying ? 1 : 0;          // 活著用上排，死亡用下排
-
+    int col = frame % cols;
+    int row = dying ? 1 : 0;
     int sx = col * frame_w;
     int sy = row * frame_h;
 
@@ -224,7 +215,6 @@ void VikingMan::draw() {
         ALLEGRO_FLIP_HORIZONTAL
     );
 
-    // Debug hitbox（紅框）
     if (auto* rect = dynamic_cast<Rectangle*>(shape.get())) {
         float left = static_cast<float>(rect->x1 - cam_x);
         float top = static_cast<float>(rect->y1 - cam_y);

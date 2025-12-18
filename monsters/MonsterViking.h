@@ -16,7 +16,6 @@ public:
 
         bitmap_switch_freq = 10;
 
-        // 新圖：單排 5 格，方向仍然照 Monster 的 dir_path_prefix 走
         bitmap_img_ids.clear();
         for (int d = 0; d < 4; ++d) {
             bitmap_img_ids.emplace_back(std::vector<int>{0, 1, 2, 3, 4});

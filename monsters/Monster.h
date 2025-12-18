@@ -91,8 +91,8 @@ private:
 
     Ally* target_ally = nullptr;
     int attack_cooldown = 0;
-    int attack_freq = 30;      // 每 30 frame 攻擊一次
-    double attack_range = 40;  // 近戰距離
+    int attack_freq = 30;
+    double attack_range = 40;
     double lane_tolerance = 25;
 
     MonsterType type;

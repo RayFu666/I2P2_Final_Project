@@ -13,7 +13,7 @@ public:
 
 private:
     bool dying = false;
-    int die_total = 25;   // 整段死亡動畫總 frame（你可調）
+    int die_total = 25;
     int die_cnt = 0;
 };
 

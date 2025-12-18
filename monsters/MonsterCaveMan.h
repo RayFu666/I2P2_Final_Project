@@ -17,13 +17,6 @@ public:
         for (int d = 0; d < 4; ++d) {
             bitmap_img_ids.emplace_back(std::vector<int>{0,1,2,3,4,5,6,7});
         }
-
-        
-        // bitmap_img_ids.emplace_back(std::vector<int>({0, 1, 2, 3})); // UP
-		// bitmap_img_ids.emplace_back(std::vector<int>({0, 1, 2, 3})); // DOWN
-		// bitmap_img_ids.emplace_back(std::vector<int>({0, 1, 2, 3})); // LEFT
-		// bitmap_img_ids.emplace_back(std::vector<int>({0, 1, 2, 3})); // RIGHT
-		// bitmap_switch_freq = 20;
     }
     void update() override;
     void draw() override;

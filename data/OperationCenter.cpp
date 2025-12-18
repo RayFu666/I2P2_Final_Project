@@ -85,12 +85,7 @@ void OperationCenter::_update_monster_player() {
 			monsters.erase(monsters.begin()+i);
 			continue;
 		}
-		// if(m->get_path().empty()){
-        //     delete m;
-        //     monsters.erase(monsters.begin()+i);
-        //     player->HP--;
-        //     continue;
-        // }
+
 		i++;
 	}
 }

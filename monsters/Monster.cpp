@@ -362,8 +362,6 @@ void Monster::draw() {
 
 
  void Monster::update() {
-     //DataCenter* DC = DataCenter::get_instance();
-     //ImageCenter* IC = ImageCenter::get_instance();
      if (HP <= 0 && state != MonsterState::DIE) {
          state = MonsterState::DIE;
      }
