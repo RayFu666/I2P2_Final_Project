@@ -5,6 +5,7 @@
 #include <allegro5/bitmap_draw.h>
 #include "Utils.h"
 #include "Player.h"
+#include <allegro5/allegro_primitives.h>
 namespace HeroSetting {
 
     static constexpr char sprite_path[] = "./assets/image/PlayHero_3.png";
@@ -52,8 +53,12 @@ void Hero::draw() {
     float camy = DC->cameray;
 
     int row=0;
-    if(state==HeroState::LEFT){
+    if(state==HeroState::LEFT&&skill_timer>=1){
+        row=3;
+    }else if(state==HeroState::LEFT){
         row=2;
+    }else if(state==HeroState::RIGHT&&skill_timer>=1){
+        row=1;
     }else{
         row=0;
     }
@@ -75,6 +80,21 @@ void Hero::draw() {
         frame_w*1.6,frame_h*1.6,
         0
     );
+
+    //add
+    if(skill_timer>0){
+    float cx=static_cast<float>(shape->center_x() - camx);
+    float cy=static_cast<float>(shape->center_y() - camy);
+
+    al_draw_filled_circle(cx, cy,
+        static_cast<float>(HeroSetting::SKILL_RADIUS),
+        al_map_rgba(0, 200, 255, 60));
+
+    al_draw_circle(cx, cy,
+        static_cast<float>(HeroSetting::SKILL_RADIUS),
+        al_map_rgba(0, 200, 255, 200),
+        3.0f);
+    }
 }
 
 void Hero::update() {
@@ -99,7 +119,7 @@ void Hero::update() {
         moved = true;
     }
 
-    if (moved) {
+    if (skill_timer>0||moved) {
         ++anim_counter;
         if (anim_counter >= anim_speed) {
             anim_counter = 0;
