@@ -301,118 +301,88 @@ bool Game::game_update() {
 	case STATE::END: {
 		return false;
 	}
-
-	if(state==STATE::LEVEL) {
+}
+	// If the game is not paused, we should progress update.
+	if (state == STATE::LEVEL) {
 		DC->player->update();
 		SC->update();
-        ui->update();
+		ui->update();
 
-        DC->hero->update();
-		const int ALLY_COST=50;
-		//change
-		if (state == STATE::
-			LEVEL&&
-            DC->mouse_state[1]&&
-			!DC->prev_mouse_state[1]&&
-            DC->mouse.x <MAP_WIDTH&&
-			DC->ally_sel&&
-			DC->ally_preview!=-1	
-		) {
-			if(DC->player->coin>=ALLY_COST){
-				float cam_x=DC->camerax;
-				double world_x=DC->mouse.x+cam_x; 
-				if(world_x<0)world_x=0;
-				if(world_x>DC->game_field_length)world_x=DC->game_field_length;
-				if(world_x<ZONE){
-					debug_log("[ALLY] Cannot place in red zone");
-            		return true;
+		DC->hero->update();
+
+		const int ALLY_COST = 50;
+
+		// 處理 ally 放置
+		if (DC->mouse_state[1] &&
+			!DC->prev_mouse_state[1] &&
+			DC->mouse.x < MAP_WIDTH &&
+			DC->ally_sel &&
+			DC->ally_preview != -1) {
+
+			if (DC->player->coin >= ALLY_COST) {
+				float  cam_x   = DC->camerax;
+				double world_x = DC->mouse.x + cam_x;
+				if (world_x < 0) world_x = 0;
+				if (world_x > DC->game_field_length) world_x = DC->game_field_length;
+
+				if (world_x < ZONE) {
+					debug_log("[ALLY] Cannot place in red zone\n");
+				} else {
+					int lane_id = DC->ally_preview;
+					double spawn_y = AllyLaneSetting::lane_y_by_id(lane_id);
+					Point spawn_pos{ world_x, spawn_y };
+
+					debug_log("[Game] Place ally_type = %d at lane=%d\n",
+							(int)DC->ally_type, lane_id);
+
+					if (DC->ally_type == AllyType::BASIC) {
+						DC->allies.emplace_back(new BasicAlly(spawn_pos, lane_id));
+					} else if (DC->ally_type == AllyType::VIKINGMAN) {
+						DC->allies.emplace_back(new VikingMan(spawn_pos, lane_id));
+					} else {
+						// AllyType::NONE 或未知：不生
+					}
+
+					debug_log("[Game] Spawn done.\n");
+
+					DC->player->coin -= ALLY_COST;
+					DC->ally_preview = -1;
+					DC->ally_sel     = false;
+					DC->ally_type    = AllyType::NONE;
 				}
-
-				int lane_id=DC->ally_preview;
-				//double spawn_y=AllyLaneSetting::nearest_lane_id(DC->mouse.y);
-				double spawn_y = AllyLaneSetting::lane_y_by_id(lane_id);
-				Point spawn_pos{world_x, spawn_y };
-
-				//add
-				Allytype type=static_cast<Allytype>(DC->ally_type);
-				DC->allies.emplace_back(new Ally(spawn_pos, lane_id,type));
-
-				DC->player->coin-=ALLY_COST;
-				DC->ally_preview=-1;
-				DC->ally_sel=false;
-				DC->ally_type=-1;
-			}else{
-				//debug
-				debug_log("Not enough coin to summon Ally. coin = %d\n", DC->player->coin);
+			} else {
+				debug_log("Not enough coin to summon Ally. coin = %d\n",
+						DC->player->coin);
 			}
-			
-        }
-		//add
-        // if (state == STATE::LEVEL &&
-        //     DC->mouse_state[1] && !DC->prev_mouse_state[1] &&
-        //     DC->mouse.x>=MAP_WIDTH) {
-			
-		// 	// float cam_x=DC->camerax;
-    	// 	// double world_x=DC->mouse.x+cam_x; 
-		// 	// if(world_x<0)world_x=0;
-    	// 	// if (world_x>DC->game_field_length)world_x=DC->game_field_length;
+		}
 
-                int lane_id = DC->ally_preview;
-                double spawn_y = AllyLaneSetting::lane_y_by_id(lane_id);
-                Point spawn_pos{ world_x, spawn_y };
+		if (DC->ally_sel && DC->mouse.x < MAP_WIDTH) {
+			int lane_id = AllyLaneSetting::nearest_lane_id(DC->mouse.y);
+			DC->ally_preview = lane_id;
+		} else {
+			DC->ally_preview = -1;
+		}
 
-                debug_log("[Game] Place ally_type = %d at lane=%d\n", (int)DC->ally_type, lane_id);
-                if (DC->ally_type == AllyType::BASIC) {
-                    DC->allies.emplace_back(new BasicAlly(spawn_pos, lane_id));
-                }
-                else if (DC->ally_type == AllyType::VIKINGMAN) {
-                    DC->allies.emplace_back(new VikingMan(spawn_pos, lane_id));
-                }
-                else {
-                    
-                }
+		// 更新 allies
+		for (Ally* a : DC->allies) {
+			a->update();
+		}
+		auto& allies = DC->allies;
+		for (auto it = allies.begin(); it != allies.end(); ) {
+			Ally* a = *it;
+			if (a->can_remove()) {
+				delete a;
+				it = allies.erase(it);
+			} else {
+				++it;
+			}
+		}
 
-                debug_log("[Game] Spawn done.\n");
+		// 關卡與其他系統更新
+		DC->level->update();
+		OC->update();
+	}
 
-                DC->player->coin -= ALLY_COST;
-                DC->ally_preview = -1;
-                DC->ally_sel = false;
-                DC->ally_type = AllyType::NONE;
-            }
-            else {
-                debug_log("Not enough coin to summon Ally. coin = %d\n", DC->player->coin);
-            }
-        }
-
-        if (DC->ally_sel && DC->mouse.x < MAP_WIDTH) {
-            int lane_id = AllyLaneSetting::nearest_lane_id(DC->mouse.y);
-            DC->ally_preview = lane_id;
-        }
-        else {
-            DC->ally_preview = -1;
-        }
-
-        for (Ally* a : DC->allies) {
-            a->update();
-        }
-
-        auto& allies = DC->allies;
-        for (auto it = allies.begin(); it != allies.end(); ) {
-            Ally* a = *it;
-            if (a->can_remove()) {
-                delete a;
-                it = allies.erase(it);
-            }
-            else {
-                ++it;
-            }
-        }
-
-        if (state != STATE::START) {
-            DC->level->update();
-            OC->update();
-        }
-    }
 
     double hero_x = DC->hero->center_x();
     float camx = static_cast<float>(hero_x - MAP_WIDTH / 2.0f);

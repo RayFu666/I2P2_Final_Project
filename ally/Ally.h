@@ -11,10 +11,6 @@ enum class AllyState {
     ATTACK,
     DIE
 };
-enum class Allytype{
-    BLACK_DUDE,
-    VIKING_HAMMERMAN
-};
 
 
 
@@ -40,8 +36,6 @@ public:
 
 protected:
     AllyState state = AllyState::WALK;
-    //add
-    Allytype type;
     double v;
     int lane_id;
 
