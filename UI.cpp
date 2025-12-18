@@ -11,7 +11,7 @@
 #include "Player.h"
 #include "towers/Tower.h"
 #include "Level.h"
-
+#include "BaseTower.h"
 // fixed settings
 constexpr char love_img_path[] = "./assets/image/love.png";
 constexpr int love_img_padding = 5;
@@ -192,7 +192,7 @@ UI::draw() {
 	//const Point &mouse = DC->mouse;
 	// draw HP
 	//const int &game_field_length = DC->game_field_length;
-	const int &player_HP = DC->player->HP;
+	const int &player_HP = DC->right_base->HP;
 
 	//add
 	constexpr int MAP_WIDTH=600;
@@ -205,7 +205,7 @@ UI::draw() {
 		panel + love_img_padding,
 		DC->window_height+love_img_padding-al_get_font_line_height(hp_font),
 		ALLEGRO_ALIGN_LEFT,
-		"My HP: %d", player_HP
+		"My HP: %d",player_HP
 	);
 	// int love_width = al_get_bitmap_width(love);
 	// for(int i = 1; i <= player_HP; ++i) {

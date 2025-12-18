@@ -6,7 +6,7 @@
 #include <allegro5/keycodes.h>
 #include <allegro5/mouse.h>
 #include "../shapes/Point.h"
-
+#include <string>
 class Player;
 class Level;
 class Monster;
@@ -57,6 +57,10 @@ public:
 	int monster_kill;
 	double tutorial_speed;
 	int enemy_base_hp;
+	//demo
+	int timer=0;
+	std::string line1;
+	std::string line2;
 	/**
 	 * @brief Stores the keyboard state whether a key is being pressed.
 	 * @details The states will be updated once a key is pressed, asynchronously with frame update.

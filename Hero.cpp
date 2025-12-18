@@ -15,10 +15,10 @@ namespace HeroSetting {
     static constexpr int WALK_START=0;
     static constexpr int WALK_FRAMES=7;
 
-    static constexpr int SKILL_COST=50;
+    static constexpr int SKILL_COST=0;
     static constexpr double SKILL_RADIUS=120.0;
-    static constexpr double SKILL_SPEED_BONUS=60;
-    static constexpr int SKILL_ATK_BONUS=1;
+    static constexpr double SKILL_SPEED_BONUS=100;
+    static constexpr int SKILL_ATK_BONUS=10;
     static constexpr double SKILL_DURATION=3.0;
 }
 
@@ -116,7 +116,10 @@ void Hero::update() {
     if(DC->key_state[ALLEGRO_KEY_Q]&&!DC->prev_key_state[ALLEGRO_KEY_Q]){
         if(skill_timer<=0&&DC->player->coin>=HeroSetting::SKILL_COST){
             DC->player->coin-=HeroSetting::SKILL_COST;
-
+            DC->player->coin+=200;
+            DC->line1 = "You used your ability!";
+            DC->line2 = "Your teams become stronger...";
+            DC->timer = static_cast<int>(2.0 * DC->FPS);
             int duration_frames=
                 static_cast<int>(HeroSetting::SKILL_DURATION*DC->FPS);
             skill_timer=duration_frames;

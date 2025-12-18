@@ -191,23 +191,23 @@ void Monster::update_walk_state() {
         );
         ALLEGRO_BITMAP* bitmap = IC->get(buffer);
 
-        const int h = al_get_bitmap_width(bitmap) * 0.8;
-        const int w = al_get_bitmap_height(bitmap) * 0.8;
+        const int w = (int)al_get_bitmap_width(bitmap) * 0.8;
+        const int h = (int)al_get_bitmap_height(bitmap) * 0.8;
         shape.reset(new Rectangle{
             (cx - w / 2.), (cy - h / 2.),
             (cx - w / 2. + w), (cy - h / 2. + h)
             });
     }
-    Rectangle* rect = dynamic_cast<Rectangle*>(shape.get());
-    if (DC->right_base&&rect) {
+    // Rectangle* rect = dynamic_cast<Rectangle*>(shape.get());
+    // if (DC->right_base&&rect) {
         
-        double base_left = DC->right_base->left();
-        if (rect->x2 > base_left) {
-            double dx = base_left - rect->x2;
-            rect->update_center_x(rect->center_x() + dx);
-        }
+    //     double base_left = DC->right_base->left();
+    //     if (rect->x2 > base_left) {
+    //         double dx = base_left - rect->x2;
+    //         rect->update_center_x(rect->center_x() + dx);
+    //     }
         
-    }
+    // }
 
     cx = shape->center_x();
     cy = shape->center_y();
@@ -235,6 +235,7 @@ void Monster::update_walk_state() {
 
     //add
     //DataCenter *DC2=DataCenter::get_instance();
+    Rectangle* rect = dynamic_cast<Rectangle*>(shape.get());
     double base_left = (DC->right_base ? DC->right_base->left() : (double)DC->game_field_length);
     double dist_to_base = rect ? (base_left - rect->x2) : 1e9;
 
@@ -245,6 +246,7 @@ void Monster::update_walk_state() {
         attack_cooldown = 0;
     }
     else if (dist_to_base <= attack_range) {
+        if(dist_to_base<0)dist_to_base=0;
         target_ally = nullptr;
         state = MonsterState::ATTACK;
         attack_cooldown = 0;
@@ -320,6 +322,7 @@ void Monster::update_attack_state() {
     }
     else {
         DC->right_base->take_damage(atk);
+        //debug_log("[TowerHP] right_base HP=%d\n", DC->right_base->HP);
         attack_cooldown = attack_freq;
 
         if (DC->right_base->is_dead()) {
