@@ -164,6 +164,18 @@ void Ally::update() {
         //     state = AllyState::WALK;
         //     break;
         // }
+        if (target) {
+            bool still_exist = false;
+            for (Monster* m : DC->monsters) {
+                if (m == target) {
+                    still_exist = true;
+                    break;
+                }
+            }
+            if (!still_exist || target->is_dead()) {
+                target = nullptr;
+            }
+        }
         if(target){
             double tx = target->shape->center_x();
             double ty = target->shape->center_y();

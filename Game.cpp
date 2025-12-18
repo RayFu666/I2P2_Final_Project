@@ -234,8 +234,7 @@ bool Game::game_update() {
 			state = STATE::PAUSE;
 		}
 
-		if (DC->enemy_base_hp <= 0 ||
-			(DC->level->remain_monsters() == 0 && DC->monsters.empty())) {
+		if (DC->enemy_base_hp <= 0) {
 			debug_log("<Game> state: change to WIN\n");
 			state = STATE::WIN;
 		}
@@ -267,6 +266,8 @@ bool Game::game_update() {
 			DC->level->load_level(cur_level);
 			DC->hero->init();
 			DC->player->rst();
+			if (DC->left_base)  DC->left_base->HP  =100;
+			if (DC->right_base) DC->right_base->HP =100;			
 			DC->enemy_base_hp = 100;
 			state = STATE::LEVEL;
 		}
@@ -538,11 +539,11 @@ void Game::game_draw() {
 
 		if (state != STATE::START) {
             DC->level->draw();
-			ImageCenter *IC=ImageCenter::get_instance();
-			ALLEGRO_BITMAP* base_img=IC->get("./assets/image/tower/Arcane.png");
-    		ALLEGRO_BITMAP* enemy_base_img=IC->get("./assets/image/tower/Archer.png");
+			//ImageCenter *IC=ImageCenter::get_instance();
+			//ALLEGRO_BITMAP* base_img=IC->get("./assets/image/tower/Arcane.png");
+    		//ALLEGRO_BITMAP* enemy_base_img=IC->get("./assets/image/tower/Archer.png");
 			float camx=DC->camerax;
-			float camy=DC->cameray;
+			//float camy=DC->cameray;
 			/////預選
 			if (DC->ally_sel && DC->ally_preview != -1) {
                 double lane_y = AllyLaneSetting::lane_y_by_id(DC->ally_preview);
@@ -574,43 +575,44 @@ void Game::game_draw() {
 			}
 			/////
 			
-			int base_h=al_get_bitmap_width(base_img);
-			int base_w=al_get_bitmap_height(enemy_base_img);
-			int enemy_base_h=al_get_bitmap_width(base_img);
-			int enemy_base_w=al_get_bitmap_height(enemy_base_img);
+			// int base_h=al_get_bitmap_width(base_img);
+			// int base_w=al_get_bitmap_height(enemy_base_img);
+			// int enemy_base_h=al_get_bitmap_width(base_img);
+			// int enemy_base_w=al_get_bitmap_height(enemy_base_img);
 
-			float base_h_f=base_h*0.7;
-			float base_w_f=base_w*0.7;
-			float enemy_base_h_f=enemy_base_h*0.7;
-			float enemy_base_w_f=enemy_base_w*0.7;
-			const double enemy_base_x=50.0;
-    		const double base_x=DC->game_field_length-20.0; 
+			//float base_h_f=base_h*0.7;
+			//float base_w_f=base_w*0.7;
+			//float enemy_base_h_f=enemy_base_h*0.7;
+			//float enemy_base_w_f=enemy_base_w*0.7;
+			//const double enemy_base_x=50.0;
+    		//const double base_x=DC->game_field_length-20.0;
 
-			for(int lane=0;lane<AllyLaneSetting::lane_count;++lane){
-				double lane_y=AllyLaneSetting::lane_y_by_id(lane);
+			// for(int lane=0;lane<AllyLaneSetting::lane_count;++lane){
+			// 	double lane_y=AllyLaneSetting::lane_y_by_id(lane);
 
-				float enemy_sc_x=static_cast<float>(enemy_base_x-camx-enemy_base_w/2.0);
-				float sc_x=static_cast<float>(base_x+15.0-camx-base_w/2.0);
-				float enemy_sc_y=static_cast<float>(lane_y-15.0-camy-enemy_base_h_f/2.0);
-				float sc_y=static_cast<float>(lane_y-15.0-camy-base_h_f/2.0);
+			// 	float enemy_sc_x=static_cast<float>(enemy_base_x-camx-enemy_base_w/2.0);
+			// 	float sc_x=static_cast<float>(base_x+15.0-camx-base_w/2.0);
+			// 	float enemy_sc_y=static_cast<float>(lane_y-15.0-camy-enemy_base_h_f/2.0);
+			// 	float sc_y=static_cast<float>(lane_y-15.0-camy-base_h_f/2.0);
 
-				al_draw_scaled_bitmap(
-					enemy_base_img,
-					0,0,enemy_base_w,enemy_base_h,
-					enemy_sc_x,enemy_sc_y,
-					enemy_base_w_f,enemy_base_h_f,
-					0
-				);
+			// 	al_draw_scaled_bitmap(
+			// 		enemy_base_img,
+			// 		0,0,enemy_base_w,enemy_base_h,
+			// 		enemy_sc_x,enemy_sc_y,
+			// 		enemy_base_w_f,enemy_base_h_f,
+			// 		0
+			// 	);
 
-				al_draw_scaled_bitmap(
-					base_img,
-					0,0,base_w,base_h,
-					sc_x,sc_y,
-					base_w_f,base_h_f,
-					0
-				);
-			}
-
+			// 	al_draw_scaled_bitmap(
+			// 		base_img,
+			// 		0,0,base_w,base_h,
+			// 		sc_x,sc_y,
+			// 		base_w_f,base_h_f,
+			// 		0
+			// 	);
+			// }
+			if (DC->left_base)  DC->left_base->draw();
+			if (DC->right_base) DC->right_base->draw();
 			
 
 

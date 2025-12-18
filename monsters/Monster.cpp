@@ -117,8 +117,8 @@ void Monster::update_walk_state() {
     DataCenter* DC = DataCenter::get_instance();
     ImageCenter* IC = ImageCenter::get_instance();
 
-    Rectangle* rect = dynamic_cast<Rectangle*>(shape.get());
-    if (!rect) return; // 理論上不會發生，保險
+    //Rectangle* rect = dynamic_cast<Rectangle*>(shape.get());
+    //if (!rect) return;
     //double x2 = rect->x2;
 
     double movement = v / DC->FPS;
@@ -154,15 +154,15 @@ void Monster::update_walk_state() {
         dir = tmpdir;
     }
 
-    if (DC->right_base) {
-        if (rect) {
-            double base_left = DC->right_base->left();
-            if (rect->x2 > base_left) {
-                double dx = base_left - rect->x2; // <=0
-                rect->update_center_x(rect->center_x() + dx);
-            }
-        }
-    }
+    // if (DC->right_base) {
+    //     if (rect) {
+    //         double base_left = DC->right_base->left();
+    //         if (rect->x2 > base_left) {
+    //             double dx = base_left - rect->x2; // <=0
+    //             rect->update_center_x(rect->center_x() + dx);
+    //         }
+    //     }
+    // }
 
 
 
@@ -198,15 +198,15 @@ void Monster::update_walk_state() {
             (cx - w / 2. + w), (cy - h / 2. + h)
             });
     }
-
-    if (DC->right_base) {
-        if (rect) {
-            double base_left = DC->right_base->left();
-            if (rect->x2 > base_left) {
-                double dx = base_left - rect->x2;
-                rect->update_center_x(rect->center_x() + dx);
-            }
+    Rectangle* rect = dynamic_cast<Rectangle*>(shape.get());
+    if (DC->right_base&&rect) {
+        
+        double base_left = DC->right_base->left();
+        if (rect->x2 > base_left) {
+            double dx = base_left - rect->x2;
+            rect->update_center_x(rect->center_x() + dx);
         }
+        
     }
 
     cx = shape->center_x();
@@ -245,7 +245,7 @@ void Monster::update_walk_state() {
         attack_cooldown = 0;
     }
     else if (dist_to_base <= attack_range) {
-        target_ally = nullptr;    // 明確表示打塔
+        target_ally = nullptr;
         state = MonsterState::ATTACK;
         attack_cooldown = 0;
     }
@@ -260,7 +260,15 @@ void Monster::update_attack_state() {
     double cy = shape->center_y();
 
     if(target_ally){
-        if (target_ally->is_dead()) {
+        bool still_exist = false;
+        for (Ally* a : DC->allies) {
+            if (a == target_ally) {
+                still_exist = true;
+                break;
+            }
+        }
+
+        if (!still_exist||target_ally->is_dead()) {
             target_ally = nullptr;
             state = MonsterState::WALK;
             return;
@@ -286,37 +294,40 @@ void Monster::update_attack_state() {
             target_ally->HP -= atk;
             attack_cooldown = attack_freq;
         }
+        return;
+    }
+    
+    if (!DC->right_base || DC->right_base->is_dead()) {
+        if (attack_cooldown > 0) attack_cooldown--;
+        else {
+            DC->player->HP -= atk;
+            attack_cooldown = attack_freq;
+        }
+        return;
+    }
+
+    double base_left = DC->right_base->left();
+    Rectangle* rect = dynamic_cast<Rectangle*>(shape.get());
+    double dist_base = rect ? (base_left - rect->x2) : 1e9;
+
+    if (dist_base > attack_range) {
+        state = MonsterState::WALK;
+        return;
+    }
+
+    if (attack_cooldown > 0) {
+        attack_cooldown--;
     }
     else {
-        // ===== attack your base tower instead of player =====
-        if (!DC->right_base || DC->right_base->is_dead()) {
-            // 沒塔就退回走路（或直接 return）
-            state = MonsterState::WALK;
-            return;
-        }
+        DC->right_base->take_damage(atk);
+        attack_cooldown = attack_freq;
 
-        double base_left = DC->right_base->left();
-        Rectangle* rect = dynamic_cast<Rectangle*>(shape.get());
-        double dist_base = rect ? (base_left - rect->x2) : 1e9;
-
-        if (dist_base > attack_range) {
-            state = MonsterState::WALK;
-            return;
-        }
-
-        if (attack_cooldown > 0) {
-            attack_cooldown--;
-        }
-        else {
-            DC->right_base->take_damage(atk);
-            attack_cooldown = attack_freq;
-
-            if (DC->right_base->is_dead()) {
-                // 你原本用 player->HP 判 LOSE，最快方式：直接把 HP 打到 0
-                DC->player->HP = 0;
-            }
+        if (DC->right_base->is_dead()) {
+            // 你原本用 player->HP 判 LOSE，最快方式：直接把 HP 打到 0
+            DC->player->HP = 0;
         }
     }
+
     
 }
 

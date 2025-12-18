@@ -86,7 +86,7 @@ DataCenter::clear_game(){
     }
     allies.clear();
     monster_kill=0;
-    if (left_base) { delete left_base; left_base = nullptr; }
-    if (right_base) { delete right_base; right_base = nullptr; }
+    //if (left_base) { delete left_base; left_base = nullptr; }
+    //if (right_base) { delete right_base; right_base = nullptr; }
 
 }
