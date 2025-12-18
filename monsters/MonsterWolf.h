@@ -16,7 +16,20 @@ public:
 		bitmap_img_ids.emplace_back(std::vector<int>({0, 1, 2, 3, 4})); // LEFT
 		bitmap_img_ids.emplace_back(std::vector<int>({0, 1, 2, 3, 4})); // RIGHT
 		bitmap_switch_freq = 20;
-	}
+    }
+    void update() override;
+    void draw() override;
+    bool can_remove() const override;
+
+private:
+    int anim_freq = 6;
+    int anim_cnt = 0;
+
+    int walk_frame = 0;
+    int attack_frame = 0;
+    int die_frame = 0;
+
+    bool die_done = false;
 };
 
 #endif

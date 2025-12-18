@@ -11,26 +11,21 @@ VikingMan::VikingMan(const Point& p, int lane_id)
 {
     ImageCenter* IC = ImageCenter::get_instance();
 
-    // 你的精靈圖路徑（自己確認檔名）
     walk_sheet = IC->get("./assets/image/ally/VikingMan_new.png");
-    // 如果你放在 monster/Viking 也行，但你說要移到 ally，就建議搬資源路徑也一起整理
 
     HP = 30;
     v = 60;
     atk = 3;
 
-    // 這隻的 sprite sheet：2 rows × 5 cols
     frame = 0;
-    frame_count = 5;          // 走路只用 0~4
+    frame_count = 5;
     frame_switch_freq = 10;
     frame_switch_counter = 0;
 
     state = AllyState::WALK;
 
-    // hitbox：先用「中心點」初始化，之後 update 會保持在 lane 上
     shape.reset(new Rectangle{ p.x, p.y, p.x, p.y });
 
-    // 攻擊參數沿用 Ally 的
     attack_freq = 30;
     attack_cooldown = 0;
     attack_range = 40.0;
@@ -45,25 +40,22 @@ VikingMan::VikingMan(const Point& p, int lane_id)
 void VikingMan::update() {
     DataCenter* DC = DataCenter::get_instance();
 
-    // ---- 死亡流程：播一次下排 ----
     if (!dying && HP <= 0) {
         dying = true;
         state = AllyState::DIE;
         target = nullptr;
         die_cnt = 0;
-        frame = 0; // 死亡動畫從第0格開始
+        frame = 0;
         return;
     }
 
     if (dying) {
-        // 死亡動畫：5格，播一次
         int per = std::max(1, die_total / 5);
         frame = std::min(4, die_cnt / per);
         die_cnt++;
         return;
     }
 
-    // ---- 活著：走路 / 攻擊 動畫（只用上排 0~4）----
     if (frame_switch_counter > 0) --frame_switch_counter;
     else {
         frame = (frame + 1) % 5;
@@ -75,17 +67,14 @@ void VikingMan::update() {
 
     switch (state) {
     case AllyState::WALK: {
-        // 往左走（跟你原本 Ally 一樣）
         double dx = v / DC->FPS;
         shape->update_center_x(cx - dx);
 
-        // 固定在 lane
         shape->update_center_y(AllyLaneSetting::lane_y_by_id(lane_id));
 
-        // 左邊界 clamp
-        if (shape->center_x() < 50.0) shape->update_center_x(50.0);
+        const double base_x = 100.0;
+        if (shape->center_x() < base_x) shape->update_center_x(base_x);
 
-        // 找前方（左邊）的怪來打
         Monster* best = nullptr;
         double best_dx = 1e9;
 
@@ -96,7 +85,7 @@ void VikingMan::update() {
             double my = m->shape->center_y();
 
             if (std::abs(my - cy) > lane_tolerance) continue;
-            if (mx >= cx) continue; // 怪在 Ally 右邊就不打（你原本邏輯）
+            if (mx >= cx) continue;
 
             double dx_front = cx - mx;
             if (dx_front <= attack_range && dx_front < best_dx) {
@@ -110,15 +99,62 @@ void VikingMan::update() {
             state = AllyState::ATTACK;
             attack_cooldown = 0;
         }
+        else {
+            const double base_x = 100.0;
+            double distance = cx - base_x;
+            if (distance <= attack_range) {
+                target = nullptr;
+                state = AllyState::ATTACK;
+                attack_cooldown = 0;
+            }
+        }
         break;
+
     }
 
     case AllyState::ATTACK: {
-        if (!target || target->is_dead()) {
-            target = nullptr;
+        const double base_x = 100.0;
+
+        if (target) {
+            bool still_exist = false;
+            for (Monster* m : DC->monsters) {
+                if (m == target) { still_exist = true; break; }
+            }
+            if (!still_exist || target->is_dead()) target = nullptr;
+        }
+
+        if (target) {
+            double tx = target->shape->center_x();
+            double ty = target->shape->center_y();
+            double dist_x = std::abs(cx - tx);
+            double dist_y = std::abs(cy - ty);
+
+            if (dist_y > lane_tolerance || dist_x > attack_range) {
+                target = nullptr;
+            }
+            else {
+                if (attack_cooldown > 0) --attack_cooldown;
+                else {
+                    target->take_damage(atk);
+                    attack_cooldown = attack_freq;
+                }
+                break;
+            }
+        }
+
+        double distance = cx - base_x;
+        if (distance > attack_range) {
             state = AllyState::WALK;
             break;
         }
+
+        if (attack_cooldown > 0) --attack_cooldown;
+        else {
+            DC->enemy_base_hp -= atk;
+            if (DC->enemy_base_hp < 0) DC->enemy_base_hp = 0;
+            attack_cooldown = attack_freq;
+        }
+        break;
 
         double tx = target->shape->center_x();
         double ty = target->shape->center_y();
@@ -152,15 +188,12 @@ bool VikingMan::can_remove() const {
 void VikingMan::draw() {
     if (!walk_sheet) return;
 
-    // 你說目前 252*130，右邊2px不要沒差
-    // 那就先「以 50×65」當格子（剛好 5×2）
     const int frame_w = 50;
     const int frame_h = 65;
     const int cols = 5;
 
-    int col = frame % cols;           // 0..4
-    int row = dying ? 1 : 0;          // 活著用上排，死亡用下排
-
+    int col = frame % cols;
+    int row = dying ? 1 : 0;
     int sx = col * frame_w;
     int sy = row * frame_h;
 
@@ -182,7 +215,6 @@ void VikingMan::draw() {
         ALLEGRO_FLIP_HORIZONTAL
     );
 
-    // Debug hitbox（紅框）
     if (auto* rect = dynamic_cast<Rectangle*>(shape.get())) {
         float left = static_cast<float>(rect->x1 - cam_x);
         float top = static_cast<float>(rect->y1 - cam_y);

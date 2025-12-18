@@ -12,19 +12,24 @@ public:
 		v = 40;
         money = 20;
 		atk=3;
-        bitmap_switch_freq = 10;
+        bitmap_switch_freq = 8;
         bitmap_img_ids.clear();
         for (int d = 0; d < 4; ++d) {
-            bitmap_img_ids.emplace_back(std::vector<int>{0,1,2,3});
+            bitmap_img_ids.emplace_back(std::vector<int>{0,1,2,3,4,5,6,7});
         }
+    }
+    void update() override;
+    void draw() override;
+    bool can_remove() const override;
+private:
+    int anim_freq = 6;
+    int anim_cnt = 0;
 
-        
-        // bitmap_img_ids.emplace_back(std::vector<int>({0, 1, 2, 3})); // UP
-		// bitmap_img_ids.emplace_back(std::vector<int>({0, 1, 2, 3})); // DOWN
-		// bitmap_img_ids.emplace_back(std::vector<int>({0, 1, 2, 3})); // LEFT
-		// bitmap_img_ids.emplace_back(std::vector<int>({0, 1, 2, 3})); // RIGHT
-		// bitmap_switch_freq = 20;
-	}
+    int walk_frame = 0;
+    int attack_frame = 0;
+    int die_frame = 0;
+
+    bool die_done = false;
 };
 
 #endif

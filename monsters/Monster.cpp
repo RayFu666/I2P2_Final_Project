@@ -171,9 +171,16 @@ void Monster::update_walk_state() {
             });
     }
     else if (type == MonsterType::GUNSLAYER) {
-
         const int w = 75, h = 75;
         shape.reset(new Rectangle{ cx - w / 2., cy - h / 2., cx - w / 2. + w, cy - h / 2. + h });
+    }
+    else if (type == MonsterType::CAVEMAN || type == MonsterType::WOLF) {
+        const int w = 64;
+        const int h = 64;
+        shape.reset(new Rectangle{
+            cx - w / 2., cy - h / 2.,
+            cx - w / 2. + w, cy - h / 2. + h
+            });
     }
     else {
         char buffer[50];
@@ -355,8 +362,6 @@ void Monster::draw() {
 
 
  void Monster::update() {
-     //DataCenter* DC = DataCenter::get_instance();
-     //ImageCenter* IC = ImageCenter::get_instance();
      if (HP <= 0 && state != MonsterState::DIE) {
          state = MonsterState::DIE;
      }

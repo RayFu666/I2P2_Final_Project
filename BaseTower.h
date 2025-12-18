@@ -12,7 +12,7 @@ class BaseTower {
 public:
     BaseTower(const Point& topLeft, ALLEGRO_BITMAP* bmp, int hp = 100);
 
-    void update() {}              // 先留空
+    void update() {}
     void draw() const;
 
     double left()  const;
@@ -26,7 +26,7 @@ public:
     int HP;
 private:
     ALLEGRO_BITMAP* bitmap;
-    std::unique_ptr<Rectangle> shape; // world-space hitbox
+    std::unique_ptr<Rectangle> shape;
 };
 
 #endif

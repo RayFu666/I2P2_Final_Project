@@ -24,7 +24,7 @@ public:
     void clear_target() { target = nullptr; }
 
 private:
-    Ally* target = nullptr;   // 追蹤目標 Ally（可跨 lane）
+    Ally* target = nullptr;
     double vx = 0.0;
     double vy = 0.0;
     double fly_dist = 0.0;
