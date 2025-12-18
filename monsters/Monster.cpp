@@ -123,10 +123,6 @@ void Monster::update_walk_state() {
     DataCenter* DC = DataCenter::get_instance();
     ImageCenter* IC = ImageCenter::get_instance();
 
-    //Rectangle* rect = dynamic_cast<Rectangle*>(shape.get());
-    //if (!rect) return;
-    //double x2 = rect->x2;
-
     double movement = v / DC->FPS;
 
     while (!path.empty() && movement > 0) {
@@ -138,7 +134,10 @@ void Monster::update_walk_state() {
             Point{ shape->center_x(), shape->center_y() },
             next_goal
         );
-        Dir tmpdir;
+
+        Dir tmpdir = dir;
+        if (d < 1e-9) d = 1e-9;
+
         if (d < movement) {
             movement -= d;
             tmpdir = convert_dir(
@@ -160,24 +159,9 @@ void Monster::update_walk_state() {
         dir = tmpdir;
     }
 
-    // if (DC->right_base) {
-    //     if (rect) {
-    //         double base_left = DC->right_base->left();
-    //         if (rect->x2 > base_left) {
-    //             double dx = base_left - rect->x2; // <=0
-    //             rect->update_center_x(rect->center_x() + dx);
-    //         }
-    //     }
-    // }
-
-
-
+    // ====== 更新 hitbox（Viking 特判，其餘照原本圖片抓）======
     double cx = shape->center_x();
     double cy = shape->center_y();
-
-
-    cx = shape->center_x();
-    cy = shape->center_y();
 
     if (type == MonsterType::VIKING) {
         const int w = 70;
@@ -186,6 +170,11 @@ void Monster::update_walk_state() {
             (cx - w / 2.), (cy - h / 2.),
             (cx - w / 2. + w), (cy - h / 2. + h)
             });
+    }
+    else if (type == MonsterType::GUNSLAYER) {
+        // ★ Gunslayer 每格 75x75（你 MonsterGunslayer.cpp 用的 CELL_W/H）
+        const int w = 75, h = 75;
+        shape.reset(new Rectangle{ cx - w / 2., cy - h / 2., cx - w / 2. + w, cy - h / 2. + h });
     }
     else {
         char buffer[50];
@@ -196,29 +185,32 @@ void Monster::update_walk_state() {
             bitmap_img_ids[static_cast<int>(dir)][bitmap_img_id]
         );
         ALLEGRO_BITMAP* bitmap = IC->get(buffer);
-
         const int w = (int)al_get_bitmap_width(bitmap) * 0.8;
         const int h = (int)al_get_bitmap_height(bitmap) * 0.8;
-        shape.reset(new Rectangle{
-            (cx - w / 2.), (cy - h / 2.),
-            (cx - w / 2. + w), (cy - h / 2. + h)
-            });
+        shape.reset(new Rectangle{ cx - w / 2., cy - h / 2., cx - w / 2. + w, cy - h / 2. + h });
     }
-    // Rectangle* rect = dynamic_cast<Rectangle*>(shape.get());
-    // if (DC->right_base&&rect) {
-        
-    //     double base_left = DC->right_base->left();
-    //     if (rect->x2 > base_left) {
-    //         double dx = base_left - rect->x2;
-    //         rect->update_center_x(rect->center_x() + dx);
-    //     }
-        
-    // }
 
+    // 重新抓一次（hitbox reset 後 center 可能一樣，但保險）
     cx = shape->center_x();
     cy = shape->center_y();
 
+    // ====== 距離塔判斷（所有怪都要能打塔）======
+    Rectangle* rect = dynamic_cast<Rectangle*>(shape.get());
+    double base_left = (DC->right_base ? DC->right_base->left() : (double)DC->game_field_length);
+    double dist_to_base = rect ? (base_left - rect->x2) : 1e9;
 
+    // ★ Gunslayer：不在 Monster 裡處理打 ally（遠程射擊交給 MonsterGunslayer）
+    if (type == MonsterType::GUNSLAYER) {
+        if (dist_to_base <= attack_range) {
+            if (dist_to_base < 0) dist_to_base = 0;
+            target_ally = nullptr;
+            state = MonsterState::ATTACK;   // 只用來打塔
+            attack_cooldown = 0;
+        }
+        return; // ★ 很重要：直接結束，避免下面去找 ally
+    }
+
+    // ====== 非 Gunslayer：照舊找「同 lane」最近 ally，進入 ATTACK 近戰 ======
     Ally* best = nullptr;
     double best_dx = 1e9;
 
@@ -228,27 +220,15 @@ void Monster::update_walk_state() {
         double ax = a->shape->center_x();
         double ay = a->shape->center_y();
 
-        if (type != MonsterType::GUNSLAYER) {
-            if (std::abs(ay - cy) > lane_tolerance) continue;
-        }
-
-
-        if (ax <= cx) continue;
+        if (std::abs(ay - cy) > lane_tolerance) continue; // 同 lane
+        if (ax <= cx) continue;                           // 只打前方
 
         double dx_front = ax - cx;
-        double range = (type == MonsterType::GUNSLAYER) ? 350.0 : attack_range;
-        if (dx_front <= range && dx_front < best_dx) {
+        if (dx_front <= attack_range && dx_front < best_dx) {
             best_dx = dx_front;
             best = a;
         }
     }
-
-    //add
-    //DataCenter *DC2=DataCenter::get_instance();
-    Rectangle* rect = dynamic_cast<Rectangle*>(shape.get());
-    double base_left = (DC->right_base ? DC->right_base->left() : (double)DC->game_field_length);
-    double dist_to_base = rect ? (base_left - rect->x2) : 1e9;
-
 
     if (best) {
         target_ally = best;
@@ -256,13 +236,13 @@ void Monster::update_walk_state() {
         attack_cooldown = 0;
     }
     else if (dist_to_base <= attack_range) {
-        if(dist_to_base<0)dist_to_base=0;
+        if (dist_to_base < 0) dist_to_base = 0;
         target_ally = nullptr;
         state = MonsterState::ATTACK;
         attack_cooldown = 0;
     }
-
 }
+
 
 
 void Monster::update_attack_state() {
@@ -344,6 +324,7 @@ void Monster::update_attack_state() {
 }
 
 void Monster::draw() {
+    if (type == MonsterType::GUNSLAYER) return;
     if (state == MonsterState::DIE)return;
 	ImageCenter *IC = ImageCenter::get_instance();
 	

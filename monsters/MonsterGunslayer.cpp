@@ -3,14 +3,14 @@
 #include "../data/ImageCenter.h"
 #include <allegro5/bitmap_draw.h>
 #include <cmath>
+#include <algorithm>
 #include "../ally/Ally.h"
 #include "GunslayerBullet.h"
 
 static constexpr int CELL_W = 75;
 static constexpr int CELL_H = 75;
-static constexpr int COLS = 6;
 
-// 把「第 idx 格」換算成 (sx, sy)，依你的有效格規則
+// 把「第 idx 格」換算成 (sx, sy)
 static void uv_run(int idx, int& sx, int& sy) {
     // run: 0..7 (上排0..5，下排0..1)
     if (idx < 6) { sx = idx * CELL_W; sy = 0; }
@@ -20,26 +20,25 @@ static void uv_run(int idx, int& sx, int& sy) {
 static void uv_shoot(int idx, int& sx, int& sy) {
     // shoot: 0..6 (上排0..5，下排0)
     if (idx < 6) { sx = idx * CELL_W; sy = 0; }
-    else { sx = 0;            sy = CELL_H; }
+    else { sx = 0; sy = CELL_H; }
 }
 
 static void uv_die(int idx, int& sx, int& sy) {
     // die: 0..14 (上排0..5, 中排6..11, 下排12..14)
-    if (idx < 6) { sx = idx * CELL_W;      sy = 0; }
+    if (idx < 6) { sx = idx * CELL_W; sy = 0; }
     else if (idx < 12) { sx = (idx - 6) * CELL_W; sy = CELL_H; }
-    else { sx = (idx - 12) * CELL_W;      sy = 2 * CELL_H; }
+    else { sx = (idx - 12) * CELL_W; sy = 2 * CELL_H; }
 }
 
 void MonsterGunslayer::update() {
     DataCenter* DC = DataCenter::get_instance();
 
-    // ---- 進入死亡動畫（只進一次）----
+    // ---- 死亡：只進一次 ----
     if (!dying && HP <= 0) {
         dying = true;
         shooting = false;
         die_frame = 0;
         anim_counter = 0;
-        // 這裡不要立刻 die_done，讓動畫播完
         return;
     }
 
@@ -49,8 +48,8 @@ void MonsterGunslayer::update() {
         if (anim_counter >= anim_freq) {
             anim_counter = 0;
             die_frame++;
-            if (die_frame >= 15) {  // 0..14 共15格
-                die_done = true;    // 播完就移除
+            if (die_frame >= 15) { // 0..14
+                die_done = true;
             }
         }
         return;
@@ -65,9 +64,14 @@ void MonsterGunslayer::update() {
 
     for (Ally* a : DC->allies) {
         if (!a || a->is_dead()) continue;
-        double dx = a->center_x() - cx;
-        double dy = a->center_y() - cy;
+
+        double ax = a->shape->center_x();
+        double ay = a->shape->center_y();
+
+        double dx = ax - cx;
+        double dy = ay - cy;
         double dist = std::sqrt(dx * dx + dy * dy);
+
         if (dist <= shoot_range && dist < best_dist) {
             best = a;
             best_dist = dist;
@@ -76,14 +80,18 @@ void MonsterGunslayer::update() {
 
     shooting = (best != nullptr);
 
-    // ---- 若在射擊狀態：站著不走，但 Monster 的「打塔近戰」仍要保留 ----
-    // 最簡單做法：射擊時暫時把 v 改 0，讓 Monster::update() 跑 state/打塔，但不位移。
+    // ---- 移動/打塔：交給 Monster ----
+    // 若 shooting：暫時 v=0 讓 Monster 還能做「打塔近戰」判斷，但不移動
     int saved_v = v;
     if (shooting) v = 0;
     Monster::update();
     v = saved_v;
 
-    // ---- 射子彈（有目標才射）----
+    // 更新位置（Monster::update 可能有微調）
+    cx = shape->center_x();
+    cy = shape->center_y();
+
+    // ---- 射子彈 ----
     if (shooting) {
         if (shoot_cooldown > 0) shoot_cooldown--;
         else {
@@ -92,7 +100,7 @@ void MonsterGunslayer::update() {
                 new GunslayerBullet(
                     spawn,
                     best,
-                    "./assets/image/GunslayerBullet.png", // 你要用的子彈圖
+                    "./assets/image/monster/Gunslayer/bullet.png",
                     bullet_speed,
                     atk,
                     bullet_fly_dist
@@ -102,19 +110,16 @@ void MonsterGunslayer::update() {
         }
     }
     else {
-        shoot_cooldown = 0; // 沒目標就重置也行（看你喜好）
+        // 不想重置也行，你現在這樣 OK
+        shoot_cooldown = 0;
     }
 
     // ---- 動畫 frame 推進 ----
     anim_counter++;
     if (anim_counter >= anim_freq) {
         anim_counter = 0;
-        if (shooting) {
-            shoot_frame = (shoot_frame + 1) % 7; // 0..6
-        }
-        else {
-            run_frame = (run_frame + 1) % 8;     // 0..7
-        }
+        if (shooting) shoot_frame = (shoot_frame + 1) % 7;
+        else run_frame = (run_frame + 1) % 8;
     }
 }
 
