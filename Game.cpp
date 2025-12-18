@@ -32,7 +32,7 @@ constexpr char background_sound_path[] = "./assets/sound/Coconut Song.mp3";
 //add
 constexpr char win_background_img_path[] = "./assets/image/winnable.png";
 constexpr char lose_background_img_path[] = "./assets/image/wutiaowu.png";
-constexpr char start_background_img_path[] = "./assets/image/start bg.png";
+constexpr char start_background_img_path[] = "./assets/image/start bg2.png";
 
 constexpr char win_icon_img_path[] = "./assets/image/panda_win.png";
 constexpr char lose_icon_img_path[] = "./assets/image/panda_lose.png";
@@ -743,9 +743,14 @@ void Game::game_draw() {
 				al_map_rgba(0, 0, 0, 120)
 			);
 			al_draw_text(
-				FC->courier_new[FontSize::LARGE], al_map_rgb(255, 255, 255),
-				DC->window_width / 2.0, 180,
-				ALLEGRO_ALIGN_CENTRE, "Select Level"
+				FC->courier_new[FontSize::HUGEE], al_map_rgb(100, 100, 255),
+				DC->window_width / 2.0, 100,
+				ALLEGRO_ALIGN_CENTRE, "SONIC TOWER DEFENSE!"
+			);
+			al_draw_text(
+				FC->courier_new[FontSize::MEDIUM], al_map_rgb(255, 255, 0),
+				DC->window_width / 2.0, 210,
+				ALLEGRO_ALIGN_CENTRE, "Select Level."
 			);
 			al_draw_text(
 				FC->caviar_dreams[FontSize::MEDIUM], al_map_rgb(0, 255, 255),
