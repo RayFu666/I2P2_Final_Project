@@ -32,6 +32,9 @@ constexpr char background_sound_path[] = "./assets/sound/Coconut Song.mp3";
 constexpr char win_background_img_path[] = "./assets/image/winnable.png";
 constexpr char lose_background_img_path[] = "./assets/image/wutiaowu.png";
 constexpr char start_background_img_path[] = "./assets/image/start bg.png";
+
+constexpr char win_icon_img_path[] = "./assets/image/panda_win.png";
+constexpr char lose_icon_img_path[] = "./assets/image/panda_lose.png";
 //add
 const int MAP_WIDTH=600;
 const int ZONE=300;
@@ -159,6 +162,8 @@ void Game::game_init() {
 	start_background = IC->get(start_background_img_path);
 	win_background = IC->get(win_background_img_path);
 	lose_background = IC->get(lose_background_img_path);
+	w_icon=IC->get(win_icon_img_path);
+	l_icon=IC->get(lose_icon_img_path);
     debug_log("Game state: change to START\n");
     state = STATE::START;
     al_start_timer(timer);
@@ -740,7 +745,7 @@ void Game::game_draw() {
 			// game layout cover
 			al_draw_filled_rectangle(0, 0, DC->window_width, DC->window_height, al_map_rgba(50, 50, 50, 64));
 			al_draw_text(
-				FC->caviar_dreams[FontSize::LARGE], al_map_rgb(255, 255, 255),
+				FC->caviar_dreams[FontSize::LARGE], al_map_rgb(0, 0,0),
 				DC->window_width/2., DC->window_height/2.,
 				ALLEGRO_ALIGN_CENTRE, "GAME PAUSED");
 			break;
@@ -753,10 +758,16 @@ void Game::game_draw() {
 				al_map_rgba(0,0,0,150)
 			);
 			al_draw_text(
-				FC->caviar_dreams[FontSize::LARGE],al_map_rgb(255,255,0),
+				FC->caviar_dreams[FontSize::LARGE],al_map_rgb(0,255,255),
 				DC->window_width/2.0,DC->window_height/2.0-40,
 				ALLEGRO_ALIGN_CENTRE,"YOU WIN!"
 			);
+			al_draw_scaled_bitmap(
+            w_icon,
+            0, 0, al_get_bitmap_width(w_icon), al_get_bitmap_height(w_icon),
+            (DC->window_width-120)/2,(DC->window_height-400)/2,120,120,
+            0
+        	);
 			al_draw_text(
 				FC->caviar_dreams[FontSize::MEDIUM],al_map_rgb(255,255,255),
 				DC->window_width/2.0,DC->window_height/2.0+10,
@@ -780,10 +791,16 @@ void Game::game_draw() {
 				0,0,DC->window_width,DC->window_height,
 				al_map_rgba(0,0,0,150)
 			);
+			al_draw_scaled_bitmap(
+            l_icon,
+            0, 0, al_get_bitmap_width(l_icon), al_get_bitmap_height(l_icon),
+            (DC->window_width-120)/2,(DC->window_height-400)/2,120,120,
+            0
+        	);
 			al_draw_text(
-				FC->caviar_dreams[FontSize::LARGE],al_map_rgb(255,255,0),
+				FC->caviar_dreams[FontSize::LARGE],al_map_rgb(255,0,0),
 				DC->window_width/2.0,DC->window_height/2.0-40,
-				ALLEGRO_ALIGN_CENTRE,"YOU LOSE!"
+				ALLEGRO_ALIGN_CENTRE,"YOU LOSE..."
 			);
 			al_draw_text(
 				FC->caviar_dreams[FontSize::MEDIUM],al_map_rgb(255,255,255),

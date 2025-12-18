@@ -24,6 +24,10 @@ namespace HeroSetting {
 }
 
 void Hero::init() {
+    state=HeroState::LEFT;
+    frame=0;
+    anim_counter=0;
+    skill_timer=0;
     ImageCenter* IC = ImageCenter::get_instance();
     hero_sheet=IC->get(HeroSetting::sprite_path);
     //GAME_ASSERT(hero_sheet,"failed to load hero sheet");

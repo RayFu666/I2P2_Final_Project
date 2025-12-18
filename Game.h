@@ -51,6 +51,9 @@ private:
 	ALLEGRO_BITMAP* start_background;
 	ALLEGRO_BITMAP* win_background;
 	ALLEGRO_BITMAP* lose_background;
+
+	ALLEGRO_BITMAP* w_icon;
+	ALLEGRO_BITMAP* l_icon;
 private:
 	ALLEGRO_DISPLAY *display;
 	ALLEGRO_TIMER *timer;
