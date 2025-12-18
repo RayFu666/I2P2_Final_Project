@@ -7,6 +7,7 @@
 #include <allegro5/mouse.h>
 #include "../shapes/Point.h"
 #include <string>
+
 class Player;
 class Level;
 class Monster;
@@ -16,6 +17,8 @@ class Bullet;
 class Hero;
 class Ally;
 class BaseTower;
+
+class GunslayerBullet;
 
 enum class AllyType {
     BASIC,
@@ -94,6 +97,8 @@ public:
     
     BaseTower* left_base = nullptr;
     BaseTower* right_base = nullptr;
+
+    std::vector<GunslayerBullet*> enemy_bullets;
     //add
 	void clear_game();
 public:

@@ -12,6 +12,8 @@
 #include "../Utils.h"
 #include <allegro5/allegro_primitives.h>
 #include "../ally/Ally.h"
+#include "MonsterGunslayer.h"
+
 
 #include "../BaseTower.h"
 #include "../Player.h"
@@ -27,7 +29,8 @@ namespace MonsterSetting {
         "./assets/image/monster/CaveMan",
         "./assets/image/monster/WolfKnight",
         "./assets/image/monster/DemonNinja",
-        "./assets/image/monster/Viking"
+        "./assets/image/monster/Viking",
+        "./assets/image/monster/Gunslayer"
     };
     static constexpr char dir_path_prefix[][10] = {
         "UP", "DOWN", "LEFT", "RIGHT"
@@ -57,6 +60,9 @@ Monster* Monster::create_monster(MonsterType type, const vector<Point>& path) {
     }
     case MonsterType::VIKING:               // ★ 新增 case
         return new MonsterViking{ path };
+    case MonsterType::GUNSLAYER: {
+        return new MonsterGunslayer{ path };
+    }
     case MonsterType::MONSTERTYPE_MAX: {}
     }
     GAME_ASSERT(false, "monster type error.");
@@ -222,12 +228,16 @@ void Monster::update_walk_state() {
         double ax = a->shape->center_x();
         double ay = a->shape->center_y();
 
-        if (std::abs(ay - cy) > lane_tolerance) continue;
+        if (type != MonsterType::GUNSLAYER) {
+            if (std::abs(ay - cy) > lane_tolerance) continue;
+        }
+
 
         if (ax <= cx) continue;
 
         double dx_front = ax - cx;
-        if (dx_front <= attack_range && dx_front < best_dx) {
+        double range = (type == MonsterType::GUNSLAYER) ? 350.0 : attack_range;
+        if (dx_front <= range && dx_front < best_dx) {
             best_dx = dx_front;
             best = a;
         }

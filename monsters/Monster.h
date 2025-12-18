@@ -11,7 +11,7 @@ enum class Dir;
 
 // fixed settings
 enum class MonsterType {
-    WOLF, CAVEMAN, WOLFKNIGHT, DEMONNIJIA, VIKING, MONSTERTYPE_MAX
+    WOLF, CAVEMAN, WOLFKNIGHT, DEMONNIJIA, VIKING, GUNSLAYER, MONSTERTYPE_MAX
 };
 
 enum class MonsterState {
